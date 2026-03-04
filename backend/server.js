@@ -4,6 +4,7 @@ const app       = express();
 const path      = require('path');
 const { default: mongoose } = require('mongoose');
 const File = require('./models/File');
+const FileData = require('./models/FileData');
 
 const PORT          = 8080;
 const DATABASE_HOST = 'localhost';
@@ -30,71 +31,71 @@ db.on('open', function() {
 
 /* CREATE ITEM */
 
-/* CREATE TEMPLATE ITEM */
-app.post("/api/templates", async (req, res) => {
+/* CREATE FILE ITEM */
+app.post("/api/files", async (req, res) => {
     try {
-        const { name, icon, description, color } = req.body;
+        const { name, icon, description, colour, color } = req.body;
+        const fileColor = color ?? colour;
 
         //Bad Request
-        if (!name || !icon || !description || !color) {
+        if (!name || !icon || !description || fileColor === undefined) {
             return res.status(400).json({
-                error: "Missing required fields: name, icon, description, color"
+                error: "Missing required fields: name, icon, description, color (or colour)"
             });
         }
 
-        const existing = await TemplateItem.findOne({ name: name.trim() });
+        const existing = await File.findOne({ name: name.trim() });
 
         if (existing) {
-            return res.status(409).json({ error: "Template name already exists" });
+            return res.status(409).json({ error: "File name already exists" });
         }
 
-        const created = await TemplateItem.create({
+        const created = await File.create({
             name: String(name).trim(),
             icon: String(icon).trim(),
             description: String(description).trim(),
-            color: String(color).trim()
+            color: String(fileColor).trim()
         });
-        
+
         return res.status(201).json(created);
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: "Server error creating template" });
+        return res.status(500).json({ error: "Server error creating file" });
     }
-        
 });
 
-/* CREATE TEMPLATE DATA */
-app.post("/api/template-data", async (req, res) => {
+/* CREATE FILE DATA */
+app.post("/api/file-data", async (req, res) => {
     try {
-        const { templateId, templateType, templateData } = req.body;
+        const { fileId, fileType, fileData } = req.body;
 
         //Bad Request
-        if (!templateId || !templateType || templateData === undefined) {
+        if (!fileId || !fileType || fileData === undefined) {
             return res.status(400).json({
-                error: "Missing required fields: templateId, templateType, templateData"
+                error: "Missing required fields: fileId, fileType, fileData"
             });
         }
 
         //Validate ObjectId
-        if (!mongoose.Types.ObjectId.isValid(templateId)) {
-            return res.status(400).json({ error: "Invalid templateId" });
+        if (!mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ error: "Invalid fileId" });
         }
 
-        const templateExists = await TemplateItem.exists({ _id: templateId });
-        if (!templateExists) {
-            return res.status(404).json({ error: "Template item not found" });
+        const fileExists = await File.exists({ _id: fileId });
+        if (!fileExists) {
+            return res.status(404).json({ error: "File not found" });
         }
 
-        const created = await templateData.create({
-            templateId,
-            templateType: String(templateType).trim(),
-            templateData
+        const created = await FileData.create({
+            fileId,
+            fileType: String(fileType).trim(),
+            fileData
         });
 
         return res.status(201).json(created);
     } catch (err) {
-        console.error("POST /api/template-data error:", err);
-        return res.status(500).json({ error: "Server error creating template data" });
+        console.error("POST /api/file-data error:", err);
+        return res.status(500).json({ error: "Server error creating file data" });
     }
 });
 

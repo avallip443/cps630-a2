@@ -3,9 +3,26 @@ const mongoose = require('mongoose');
 const FileSchema = new mongoose.Schema({
     name: {
         type: String,
-        unique: true,
+        required: true,
+        trim: true,
+        unique: true
+    },
+    icon: {
+        type: String,
         required: true,
         trim: true
+    },
+    description: {
+        type: String,
+        trim: true
+    },
+    color: {
+        type: String,
+        trim: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
