@@ -195,6 +195,24 @@ app.get("/api/file-data/item/:id", async (req, res) => {
 
 /* DELETE ITEM */
 
+/* SAVE EDITS */
+app.put("/api/file-data/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fileData } = req.body;
+
+    const updated = await FileData.findByIdAndUpdate(
+      id,
+      { fileData },
+      { new: true }
+    );
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error updating file" });
+  }
+});
 
 app.get("/api/files", async (req, res) => {
     try {
