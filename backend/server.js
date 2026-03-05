@@ -205,5 +205,16 @@ app.get("/api/files", async (req, res) => {
         res.status(500).json({ error: "Error fetching files" });
     }
 });
+
+// GET all user files
+app.get("/api/file-data", async (req, res) => {
+  try {
+    const files = await FileData.find().populate("fileId"); // populates the template info
+    res.status(200).json(files);
+  } catch (err) {
+    console.error("Error fetching user files:", err);
+    res.status(500).json({ error: "Error fetching user files" });
+  }
+});
 //starts server
 app.listen(PORT, () => { console.log("Server started on port: " + PORT) });
