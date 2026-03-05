@@ -11,7 +11,7 @@ Inspired by: Notion
 
 1. **Clone repository**
 ```
-git clone https://github.com/avallip443/cps630.git
+git clone https://github.com/avallip443/cps630-a2.git
 ```
 
 2. **Install dependencies**
