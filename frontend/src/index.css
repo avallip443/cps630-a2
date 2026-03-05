@@ -429,3 +429,30 @@ select {
   font-family: var(--font-family);
   color: black;
 }
+
+.file-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--border-radius);
+  padding: var(--padding-medium);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-medium);
+  text-decoration: none; /* prevents link underline */
+  color: var(--text-primary);
+  transition: 0.2s ease;
+}
+
+.file-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-colour);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.user-files-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--padding-medium);
+  padding: var(--padding-large);
+  width: 90%;
+}

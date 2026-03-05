@@ -1,4 +1,43 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
 export default function BugReport() {
+  const { id } = useParams(); // FileData ID
+  const [fileData, setFileData] = useState(null);
+
+  // Fetch the saved file data when the page loads
+  useEffect(() => {
+    async function fetchFileData() {
+      try {
+        const res = await fetch(`http://localhost:8080/api/file-data/item/${id}`);
+        const data = await res.json();
+        setFileData(data.fileData || {});
+      } catch (err) {
+        console.error("Error fetching file data:", err);
+      }
+    }
+    fetchFileData();
+  }, [id]);
+
+  const handleChange = (key, value) => {
+    setFileData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      await fetch(`http://localhost:8080/api/file-data/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileData })
+      });
+      alert("File saved!");
+    } catch (err) {
+      console.error("Error saving file data:", err);
+    }
+  };
+
+  if (!fileData) return <p>Loading...</p>;
+
   return (
     <>
       <div className="header">
@@ -6,48 +45,64 @@ export default function BugReport() {
         <p className="subtitle">Template for reporting bugs</p>
       </div>
 
-      <div>
-        <div className="container">
-          <div className="section">
-            <h2>Bug Information</h2>
-            <div className="field">
-              <label htmlFor="bug-id">Bug ID</label>
-              <input type="text" id="bug-id" />
-            </div>
-            <div className="field">
-              <label htmlFor="bug-title">Title</label>
-              <input type="text" id="bug-title" />
-            </div>
-            <div>
-              <div className="field">
-                <label htmlFor="severity">Severity</label>
-                <select id="severity">
-                  <option value="">Select level</option>
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="status">Status</label>
-                <select id="status">
-                  <option value="">Select status</option>
-                  <option value="open">Open</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="fixed">Fixed</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-            </div>
+      <div className="container">
+        <div className="section">
+          <h2>Bug Information</h2>
+          <div className="field">
+            <label>Bug ID</label>
+            <input
+              type="text"
+              value={fileData.bugId || ""}
+              onChange={e => handleChange("bugId", e.target.value)}
+            />
           </div>
-
-          <div className="section">
-            <h2>Description</h2>
-            <textarea rows={4} />
+          <div className="field">
+            <label>Title</label>
+            <input
+              type="text"
+              value={fileData.title || ""}
+              onChange={e => handleChange("title", e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>Severity</label>
+            <select
+              value={fileData.severity || ""}
+              onChange={e => handleChange("severity", e.target.value)}
+            >
+              <option value="">Select level</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div className="field">
+            <label>Status</label>
+            <select
+              value={fileData.status || ""}
+              onChange={e => handleChange("status", e.target.value)}
+            >
+              <option value="">Select status</option>
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="fixed">Fixed</option>
+              <option value="closed">Closed</option>
+            </select>
           </div>
         </div>
+
+        <div className="section">
+          <h2>Description</h2>
+          <textarea
+            rows={4}
+            value={fileData.description || ""}
+            onChange={e => handleChange("description", e.target.value)}
+          />
+        </div>
+
+        <button onClick={handleSave}>Save</button>
       </div>
     </>
-  )
+  );
 }

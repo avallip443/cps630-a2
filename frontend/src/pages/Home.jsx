@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const [templates, setTemplates] = useState([]);
@@ -102,24 +103,25 @@ const createNewFile = async (template) => {
         )}
       </div>
 
-      <div className="user-files-container">
-    {userFiles.length === 0 ? (
-      <p>No files created yet</p>
-    ) : (
-      userFiles.map(file => (
-        <div
-          key={file._id}
-          className="file-card"
-          style={{ borderLeft: `6px solid ${file.fileId.color}` }}
-        >
-          <h2>
-            {file.fileId.icon} {file.fileType} {/* fileType = user-given name */}
-          </h2>
-          <p>{file.fileId.description}</p>
-        </div>
-      ))
-    )}
-  </div>
+    <div className="user-files-container">
+      {userFiles.length === 0 ? (
+        <p>No files created yet</p>
+      ) : (
+        userFiles.map(file => (
+          <Link 
+            key={file._id} 
+            to={`/${file.fileId.name.toLowerCase().replace(" ", "-")}/${file._id}`}
+            className="file-card"
+            style={{ borderLeft: `6px solid ${file.fileId.color}` }}
+          >
+            <h2>
+              {file.fileId.icon} {file.fileType}
+            </h2>
+            <p>{file.fileId.description}</p>
+          </Link>
+        ))
+      )}
+    </div>
       {showModal && (
   <div className="modal">
     <div className="modal-content">
