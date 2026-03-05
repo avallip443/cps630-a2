@@ -192,8 +192,79 @@ app.get("/api/file-data/item/:id", async (req, res) => {
 });
 
 /* UPDATE ITEM */
+/* FILE NAME */
+app.patch('/api/files/:name', async (req, res) => {
+    const { name } = req.params;
+    const { newName } = req.body;
+
+    if (!newName) {
+        return res.status(400).json({ error: "Missing required field: newName" });
+    }
+
+    // if we want every file to have diff name
+    const existing = await File.findOne({ name: newName });
+
+    if (existing) {
+        return res.status(409).json({ error: "File name already exists" });
+    }
+
+    const updated = await File.findOneAndUpdate(
+            { name: name },
+            { name: newName },
+            { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+        return res.status(404).json({ error: "File Not Found" });
+    }
+    
+    return res.status(200).json(updated); 
+});
+
+/* FILE CONTENT */
+app.patch('/api/file-data/:fileId', async (req, res) => {
+    const { fileId } = req.params;
+    const { fileData } = req.body;
+
+    if (fileData === undefined) {
+        return res.status(400).json({ error: "Missing required field: fileData" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(fileId)) {
+        return res.status(400).json({ error: "Invalid fileId" });
+    }
+
+    const updated = await FileData.findOneAndUpdate(
+            { fileId },
+            { fileData },
+            { new: true, runValidators: true }
+        );
+
+    if (!updated) {
+        return res.status(404).json({ error: "File Data Not Found" });
+    }
+    
+    return res.status(200).json(updated); 
+});
+
 
 /* DELETE ITEM */
+app.delete('/api/files/:fileId', async (req, res) => {
+    const { fileId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(fileId)) {
+        return res.status(400).json({ error: "Invalid Field" });
+    }
+    const file = await File.findByIdAndDelete(fileId);
+
+    if (!file) {
+        return res.status(404).json({ error: "File Not Found" });
+    }
+    await FileData.deleteMany({ fileId });
+    
+    return res.status(200).json({ message: "File Deleted" }); 
+});
+
 
 /* SAVE EDITS */
 app.put("/api/file-data/:id", async (req, res) => {
