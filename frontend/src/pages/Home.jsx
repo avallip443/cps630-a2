@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [userFiles, setUserFiles] = useState([]);
 
   useEffect(() => {
     fetch("http://localhost:8080/api/files")
@@ -17,7 +19,24 @@ export default function Home() {
         setLoading(false);
       });
   }, []);
-  const createNewFile = async (template) => {
+
+  useEffect(() => {
+  async function fetchUserFiles() {
+    try {
+      const res = await fetch("http://localhost:8080/api/file-data"); // backend route to get all user files
+      const data = await res.json();
+      setUserFiles(data);
+    } catch (err) {
+      console.error("Error fetching user files:", err);
+    }
+  }
+
+  fetchUserFiles();
+  }, []);
+const createNewFile = async (template) => {
+  const fileName = prompt("Enter a name for your new file:");
+  if (!fileName) return; // Cancelled
+
   try {
     const response = await fetch("http://localhost:8080/api/file-data", {
       method: "POST",
@@ -26,8 +45,8 @@ export default function Home() {
       },
       body: JSON.stringify({
         fileId: template._id,
-        fileType: template.name,
-        fileData: {}
+        fileType: fileName, // The name user gives
+        fileData: {}        // Empty data to start
       })
     });
 
@@ -35,6 +54,10 @@ export default function Home() {
     console.log("Created file:", data);
 
     setShowModal(false);
+    alert(`File "${fileName}" created! You can now edit it.`);
+
+    // Optionally: redirect to a file editor page
+    // navigate(`/file/${data._id}`) if using react-router
 
   } catch (err) {
     console.error("Error creating file:", err);
@@ -79,6 +102,26 @@ export default function Home() {
           ))
         )}
       </div>
+
+    <div className="user-files-container">
+      {userFiles.length === 0 ? (
+        <p>No files created yet</p>
+      ) : (
+        userFiles.map(file => (
+          <Link 
+            key={file._id} 
+            to={`/${file.fileId.name.toLowerCase().replace(" ", "-")}/${file._id}`}
+            className="file-card"
+            style={{ borderLeft: `6px solid ${file.fileId.color}` }}
+          >
+            <h2>
+              {file.fileId.icon} {file.fileType}
+            </h2>
+            <p>{file.fileId.description}</p>
+          </Link>
+        ))
+      )}
+    </div>
       {showModal && (
   <div className="modal">
     <div className="modal-content">

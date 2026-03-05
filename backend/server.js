@@ -195,6 +195,24 @@ app.get("/api/file-data/item/:id", async (req, res) => {
 
 /* DELETE ITEM */
 
+/* SAVE EDITS */
+app.put("/api/file-data/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fileData } = req.body;
+
+    const updated = await FileData.findByIdAndUpdate(
+      id,
+      { fileData },
+      { new: true }
+    );
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error updating file" });
+  }
+});
 
 app.get("/api/files", async (req, res) => {
     try {
@@ -204,6 +222,17 @@ app.get("/api/files", async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Error fetching files" });
     }
+});
+
+// GET all user files
+app.get("/api/file-data", async (req, res) => {
+  try {
+    const files = await FileData.find().populate("fileId"); // populates the template info
+    res.status(200).json(files);
+  } catch (err) {
+    console.error("Error fetching user files:", err);
+    res.status(500).json({ error: "Error fetching user files" });
+  }
 });
 //starts server
 app.listen(PORT, () => { console.log("Server started on port: " + PORT) });
