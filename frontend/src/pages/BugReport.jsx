@@ -36,6 +36,29 @@ export default function BugReport() {
     }
   };
 
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Confirm Delete File?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/file-data/${id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        alert("File Deleted!");
+        window.location.href = "/";
+      }
+      else {
+        const err = await res.json();
+        alert("Delete failed: " + err.error);
+      }
+    }
+    catch (err) {
+      console.error("Error Deleting File:", err);
+    }
+  };
+
   if (!fileData) return <p>Loading...</p>;
 
   return (
@@ -100,8 +123,10 @@ export default function BugReport() {
             onChange={e => handleChange("description", e.target.value)}
           />
         </div>
+        
+        <button className="save" onClick={handleSave}>Save</button>
+        <button className="delete" onClick={handleDelete}> Delete File</button>
 
-        <button onClick={handleSave}>Save</button>
       </div>
     </>
   );

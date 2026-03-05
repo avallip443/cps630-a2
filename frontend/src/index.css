@@ -456,3 +456,35 @@ select {
   padding: var(--padding-large);
   width: 90%;
 }
+
+/* Button container */
+button {
+  align-items: center;
+  display: flex;
+  padding: 5px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+/* Save button (default left) */
+button.save {
+  border: none;
+  background-color: #4CAF50;
+  color: white;
+}
+button.save:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+/* Delete button (right side) */
+button.delete {
+  border: 1px solid #ccc;
+  background-color: white;
+  color: black;
+  margin-left: auto;
+}
+button.delete:hover {
+  background-color: #f5f5f5;
+  color: red;
+  transform: scale(1.05);
+}

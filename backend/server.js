@@ -249,20 +249,27 @@ app.patch('/api/file-data/:fileId', async (req, res) => {
 
 
 /* DELETE ITEM */
-app.delete('/api/files/:fileId', async (req, res) => {
-    const { fileId } = req.params;
+app.delete('/api/file-data/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(fileId)) {
-        return res.status(400).json({ error: "Invalid Field" });
-    }
-    const file = await File.findByIdAndDelete(fileId);
+        // Validate ID
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "Invalid ID" });
+        }
 
-    if (!file) {
-        return res.status(404).json({ error: "File Not Found" });
+        const deleted = await FileData.findByIdAndDelete(id);
+
+        if (!deleted) {
+            return res.status(404).json({ error: "File Data Not Found" });
+        }
+
+        return res.status(200).json({ message: "File Deleted Successfully" });
+
+    } catch (err) {
+        console.error("DELETE /api/file-data error:", err);
+        return res.status(500).json({ error: "Server error deleting file" });
     }
-    await FileData.deleteMany({ fileId });
-    
-    return res.status(200).json({ message: "File Deleted" }); 
 });
 
 
