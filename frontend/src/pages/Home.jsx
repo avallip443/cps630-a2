@@ -1,4 +1,46 @@
+import { useEffect, useState } from "react";
+
 export default function Home() {
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/files")
+      .then(res => res.json())
+      .then(data => {
+        setTemplates(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching templates:", err);
+        setLoading(false);
+      });
+  }, []);
+  const createNewFile = async (template) => {
+  try {
+    const response = await fetch("http://localhost:8080/api/file-data", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fileId: template._id,
+        fileType: template.name,
+        fileData: {}
+      })
+    });
+
+    const data = await response.json();
+    console.log("Created file:", data);
+
+    setShowModal(false);
+
+  } catch (err) {
+    console.error("Error creating file:", err);
+  }
+};
+
   return (
     <>
       <div className="header">
@@ -6,18 +48,79 @@ export default function Home() {
         <p className="subtitle">Manage Your Work</p>
       </div>
 
-      <div className="add-template">
-        <button type="button" className="btn btn-primary">
-          + New Template
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={() => setShowModal(true)}
+      >
+        + New Template
+      </button>
+
+      <div className="templates-container">
+        {loading ? (
+          <p>Loading templates...</p>
+        ) : templates.length === 0 ? (
+          <div className="empty-state">
+            <h1>No templates yet</h1>
+            <p>Add your first template using the + New Template button</p>
+          </div>
+        ) : (
+          templates.map(template => (
+            <div
+              key={template._id}
+              className="template-card"
+              style={{ borderLeft: `6px solid ${template.color}` }}
+            >
+              <h2>
+                {template.icon} {template.name}
+              </h2>
+              <p>{template.description}</p>
+            </div>
+          ))
+        )}
+      </div>
+      {showModal && (
+  <div className="modal">
+    <div className="modal-content">
+      
+      <div className="modal-header">
+        <h2>Select Template</h2>
+        <button
+          className="modal-close"
+          onClick={() => setShowModal(false)}
+        >
+          ×
         </button>
       </div>
 
-      <div className="templates-container">
-        <div className="empty-state">
-          <h1>No templates yet</h1>
-          <p>Add your first template using the + New Template button</p>
+      <div className="modal-body">
+        <div className="items-list">
+          {templates.map(template => (
+            <button
+              key={template._id}
+              className="item-option"
+              onClick={() => createNewFile(template)}
+            >
+              <div className="icon">
+                {template.icon}
+              </div>
+
+              <div className="item-option-content">
+                <div className="item-option-title">
+                  {template.name}
+                </div>
+                <div className="item-option-desc">
+                  {template.description}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
-    </>
-  )
+
+    </div>
+  </div>
+)}
+        </>
+  );
 }
