@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
 
 const API = "http://localhost:8080";
 
@@ -9,31 +8,32 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  async function fetchAll() {
+  async function fetchFiles() {
     setLoading(true);
     try {
-      const [filesRes, fileDataRes, templatesRes] = await Promise.all([
-        fetch(`${API}/api/files`),
-        fetch(`${API}/api/file-data`),
-        fetch(`${API}/api/templates/default`)
-      ]);
-      const [files, fileData, templates] = await Promise.all([
-        filesRes.json(),
-        fileDataRes.json(),
-        templatesRes.json()
-      ]);
-      setUserFiles([...files, ...fileData]);
-      setDefaultTemplates(templates);
+      const res = await fetch(`${API}/api/files`);
+      const files = await res.json();
+      setUserFiles(files);
     } catch (err) {
-      console.error("Error fetching:", err);
+      console.error("Error fetching files:", err);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchAll();
+    fetchFiles();
   }, []);
+
+  useEffect(() => {
+    if (!showModal) return;
+    let cancelled = false;
+    fetch(`${API}/api/templates/default`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setDefaultTemplates(data); })
+      .catch((err) => console.error("Error fetching templates:", err));
+    return () => { cancelled = true; };
+  }, [showModal]);
 
   const createNewFile = async (template) => {
     const fileName = prompt("Enter a name for your new file:");
@@ -54,7 +54,7 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || "Failed to create file");
       setShowModal(false);
       alert(`File "${fileName}" created!`);
-      await fetchAll();
+      fetchFiles();
     } catch (err) {
       console.error("Error creating file:", err);
       alert(err.message || "Error creating file");
@@ -85,39 +85,16 @@ export default function Home() {
             <p>Create one using + New Template</p>
           </div>
         ) : (
-          userFiles.map((item) => {
-            const isFileData = item.fileId != null;
-            const name = isFileData ? item.fileId.name : item.name;
-            const icon = isFileData ? item.fileId.icon : item.icon;
-            const description = isFileData ? item.fileId.description : item.description;
-            const colour = isFileData ? item.fileId.colour : item.colour;
-            const label = isFileData ? item.fileType : item.name;
-
-            if (isFileData) {
-              const slug = name.toLowerCase().replace(/\s+/g, "-");
-              return (
-                <Link
-                  key={item._id}
-                  to={`/${slug}/${item._id}`}
-                  className="file-card"
-                  style={{ borderLeft: `6px solid ${colour}` }}
-                >
-                  <h2>{icon} {label}</h2>
-                  <p>{description}</p>
-                </Link>
-              );
-            }
-            return (
-              <div
-                key={item._id}
-                className="file-card"
-                style={{ borderLeft: `6px solid ${colour}` }}
-              >
-                <h2>{icon} {label}</h2>
-                <p>{description}</p>
-              </div>
-            );
-          })
+          userFiles.map((item) => (
+            <div
+              key={item._id}
+              className="file-card"
+              style={{ borderLeft: `6px solid ${item.colour || ""}` }}
+            >
+              <h2>{item.icon} {item.name}</h2>
+              <p>{item.description}</p>
+            </div>
+          ))
         )}
       </div>
       {showModal && (
