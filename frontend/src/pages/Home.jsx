@@ -33,6 +33,7 @@ export default function Home() {
 
   fetchUserFiles();
   }, []);
+  
 const createNewFile = async (template) => {
   const fileName = prompt("Enter a name for your new file:");
   if (!fileName) return; // Cancelled

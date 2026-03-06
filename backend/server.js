@@ -125,8 +125,6 @@ app.post("/api/file-data", async (req, res) => {
     }
 });
 
-
-
 /* READ ITEM (one file using id) */
 app.get("/api/files/:id", async (req, res) => {
     try {

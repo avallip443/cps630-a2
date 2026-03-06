@@ -3,13 +3,15 @@ import { useParams } from "react-router-dom";
 
 export default function ProjectPlan() {
   const { id } = useParams(); // FileData ID
-  const [fileData, setFileData] = useState(null);
+  const [file, setFile] = useState(null);
+  const [fileData, setFileData] = useState({});
 
   useEffect(() => {
     async function fetchFileData() {
       try {
         const res = await fetch(`http://localhost:8080/api/file-data/item/${id}`);
         const data = await res.json();
+        setFile(data);
         setFileData(data.fileData || {});
       } catch (err) {
         console.error("Error fetching file data:", err);
@@ -58,12 +60,12 @@ export default function ProjectPlan() {
     }
   };
 
-  if (!fileData) return <p>Loading...</p>;
+  if (!file) return <p>Loading...</p>;
 
 return (
   <div>
     <div className="header">
-      <h1>📊 Project Plan</h1>
+      <h1>📊 {file.fileType} </h1>
       <p className="subtitle">
         Template for planning and tracking project milestones
       </p>

@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 
 export default function BugReport() {
   const { id } = useParams(); // FileData ID
-  const [fileData, setFileData] = useState(null);
+  const [file, setFile] = useState(null);
+  const [fileData, setFileData] = useState({});
 
   // Fetch the saved file data when the page loads
   useEffect(() => {
@@ -11,6 +12,7 @@ export default function BugReport() {
       try {
         const res = await fetch(`http://localhost:8080/api/file-data/item/${id}`);
         const data = await res.json();
+        setFile(data);
         setFileData(data.fileData || {});
       } catch (err) {
         console.error("Error fetching file data:", err);
@@ -21,6 +23,8 @@ export default function BugReport() {
 
   const handleChange = (key, value) => {
     setFileData(prev => ({ ...prev, [key]: value }));
+    
+
   };
 
   const handleSave = async () => {
@@ -59,12 +63,12 @@ export default function BugReport() {
     }
   };
 
-  if (!fileData) return <p>Loading...</p>;
+  if (!file) return <p>Loading...</p>;
 
 return (
   <div>
     <div className="header">
-      <h1>🐛 Bug Report</h1>
+      <h1>🐛 {file.fileType} </h1>
       <p className="subtitle">Template for reporting bugs</p>
     </div>
 
