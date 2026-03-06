@@ -1,69 +1,65 @@
 import { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 
+const API = "http://localhost:8080";
+
 export default function Home() {
-  const [templates, setTemplates] = useState([]);
+  const [userFiles, setUserFiles] = useState([]);
+  const [defaultTemplates, setDefaultTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [userFiles, setUserFiles] = useState([]);
 
-  useEffect(() => {
-    fetch("http://localhost:8080/api/files")
-      .then(res => res.json())
-      .then(data => {
-        setTemplates(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error fetching templates:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-  async function fetchUserFiles() {
+  async function fetchAll() {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/file-data"); // backend route to get all user files
-      const data = await res.json();
-      setUserFiles(data);
+      const [filesRes, fileDataRes, templatesRes] = await Promise.all([
+        fetch(`${API}/api/files`),
+        fetch(`${API}/api/file-data`),
+        fetch(`${API}/api/templates/default`)
+      ]);
+      const [files, fileData, templates] = await Promise.all([
+        filesRes.json(),
+        fileDataRes.json(),
+        templatesRes.json()
+      ]);
+      setUserFiles([...files, ...fileData]);
+      setDefaultTemplates(templates);
     } catch (err) {
-      console.error("Error fetching user files:", err);
+      console.error("Error fetching:", err);
+    } finally {
+      setLoading(false);
     }
   }
 
-  fetchUserFiles();
+  useEffect(() => {
+    fetchAll();
   }, []);
-  
-const createNewFile = async (template) => {
-  const fileName = prompt("Enter a name for your new file:");
-  if (!fileName) return; // Cancelled
 
-  try {
-    const response = await fetch("http://localhost:8080/api/file-data", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        fileId: template._id,
-        fileType: fileName, // The name user gives
-        fileData: {}        // Empty data to start
-      })
-    });
-
-    const data = await response.json();
-    console.log("Created file:", data);
-
-    setShowModal(false);
-    alert(`File "${fileName}" created! You can now edit it.`);
-
-    // Optionally: redirect to a file editor page
-    // navigate(`/file/${data._id}`) if using react-router
-
-  } catch (err) {
-    console.error("Error creating file:", err);
-  }
-};
+  const createNewFile = async (template) => {
+    const fileName = prompt("Enter a name for your new file:");
+    if (!fileName) return;
+    try {
+      const body = { fileType: fileName, fileData: {} };
+      if (template._id) {
+        body.fileId = template._id;
+      } else {
+        body.templateName = template.name;
+      }
+      const response = await fetch(`${API}/api/file-data`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to create file");
+      setShowModal(false);
+      alert(`File "${fileName}" created!`);
+      await fetchAll();
+    } catch (err) {
+      console.error("Error creating file:", err);
+      alert(err.message || "Error creating file");
+    }
+  };
 
   return (
     <>
@@ -80,49 +76,50 @@ const createNewFile = async (template) => {
         + New Template
       </button>
 
-      <div className="templates-container">
+      <div className="user-files-container">
         {loading ? (
-          <p>Loading templates...</p>
-        ) : templates.length === 0 ? (
+          <p>Loading...</p>
+        ) : userFiles.length === 0 ? (
           <div className="empty-state">
-            <h1>No templates yet</h1>
-            <p>Add your first template using the + New Template button</p>
+            <h1>No files yet</h1>
+            <p>Create one using + New Template</p>
           </div>
         ) : (
-          templates.map(template => (
-            <div
-              key={template._id}
-              className="template-card"
-              style={{ borderLeft: `6px solid ${template.color}` }}
-            >
-              <h2>
-                {template.icon} {template.name}
-              </h2>
-              <p>{template.description}</p>
-            </div>
-          ))
+          userFiles.map((item) => {
+            const isFileData = item.fileId != null;
+            const name = isFileData ? item.fileId.name : item.name;
+            const icon = isFileData ? item.fileId.icon : item.icon;
+            const description = isFileData ? item.fileId.description : item.description;
+            const color = isFileData ? item.fileId.color : item.color;
+            const label = isFileData ? item.fileType : item.name;
+
+            if (isFileData) {
+              const slug = name.toLowerCase().replace(/\s+/g, "-");
+              return (
+                <Link
+                  key={item._id}
+                  to={`/${slug}/${item._id}`}
+                  className="file-card"
+                  style={{ borderLeft: `6px solid ${color}` }}
+                >
+                  <h2>{icon} {label}</h2>
+                  <p>{description}</p>
+                </Link>
+              );
+            }
+            return (
+              <div
+                key={item._id}
+                className="file-card"
+                style={{ borderLeft: `6px solid ${color}` }}
+              >
+                <h2>{icon} {label}</h2>
+                <p>{description}</p>
+              </div>
+            );
+          })
         )}
       </div>
-
-    <div className="user-files-container">
-      {userFiles.length === 0 ? (
-        <p>No files created yet</p>
-      ) : (
-        userFiles.map(file => (
-          <Link 
-            key={file._id} 
-            to={`/${file.fileId.name.toLowerCase().replace(" ", "-")}/${file._id}`}
-            className="file-card"
-            style={{ borderLeft: `6px solid ${file.fileId.color}` }}
-          >
-            <h2>
-              {file.fileId.icon} {file.fileType}
-            </h2>
-            <p>{file.fileId.description}</p>
-          </Link>
-        ))
-      )}
-    </div>
       {showModal && (
   <div className="modal">
     <div className="modal-content">
@@ -139,9 +136,9 @@ const createNewFile = async (template) => {
 
       <div className="modal-body">
         <div className="items-list">
-          {templates.map(template => (
+          {defaultTemplates.map((template) => (
             <button
-              key={template._id}
+              key={template._id ?? template.name}
               className="item-option"
               onClick={() => createNewFile(template)}
             >

@@ -2,9 +2,12 @@ const express   = require('express');
 const cors      = require('cors');
 const app       = express();
 const path      = require('path');
+const fs        = require('fs');
 const { default: mongoose } = require('mongoose');
 const File = require('./models/File');
 const FileData = require('./models/FileData');
+
+const DEFAULT_TEMPLATES_PATH = path.join(__dirname, 'data', 'default-templates.json');
 
 const PORT          = 8080;
 const DATABASE_HOST = 'localhost';
@@ -27,14 +30,14 @@ db.on('open', function() {
     console.log('database connected')
 });
 
-//test files
-let file_database = [
-  {name: "Bug Report", icon: "🐞", description: "Documenting software bugs and issues", color: "#E53935"},
-  {name: "Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", color: "#1E88E5"},
-  {name: "Project Plan",icon: "📊",description: "Project timeline, milestones, and deliverables",color: "#43A047"}
+// Test data
+const file_database = [
+    { name: "Test Bug Report", icon: "🐞", description: "Documenting software bugs and issues", color: "#E53935" },
+    { name: "Test Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", color: "#1E88E5" },
+    { name: "Test Project Plan", icon: "📊", description: "Project timeline, milestones, and deliverables", color: "#43A047" }
 ];
 
-//adding test data
+// Add test data
 async function addTestFilesToMongoDB() {
     const fileCount = await File.countDocuments();
 
@@ -45,15 +48,25 @@ async function addTestFilesToMongoDB() {
             const newFile = new File(file);
             newFile.save()
             .then( () => console.log('File added with name ' + file.name))
-            .catch(err =>  console.error('Error Adding File with Title ' + file.name)); 
+            .catch(err =>  console.error('Error adding file with name ' + file.name, err)); 
         })
     }
     else {
-        console.log('files already exist...');
+        console.log('Files already exist...');
         return;
     }
 }
 addTestFilesToMongoDB();
+
+function readDefaultTemplates() {
+    try {
+        const raw = fs.readFileSync(DEFAULT_TEMPLATES_PATH, 'utf8');
+        return JSON.parse(raw);
+    } catch (err) {
+        console.error('Error reading default-templates.json:', err);
+        return [];
+    }
+}
 
 /* CREATE ITEM */
 
@@ -93,31 +106,45 @@ app.post("/api/files", async (req, res) => {
 /* CREATE FILE DATA */
 app.post("/api/file-data", async (req, res) => {
     try {
-        const { fileId, fileType, fileData } = req.body;
-
-        //Bad Request
-        if (!fileId || !fileType || fileData === undefined) {
-            return res.status(400).json({
-                error: "Missing required fields: fileId, fileType, fileData"
-            });
+        const { fileId, templateName, fileType, fileData } = req.body;
+        if (!fileType || fileData === undefined) {
+            return res.status(400).json({ error: "Missing required fields: fileType, fileData" });
         }
 
-        //Validate ObjectId
-        if (!mongoose.Types.ObjectId.isValid(fileId)) {
+        let resolvedFileId = fileId;
+        if (!resolvedFileId && templateName) {
+            let file = await File.findOne({ name: String(templateName).trim() });
+            if (!file) {
+                const list = readDefaultTemplates();
+                const t = list.find((x) => x.name === templateName);
+                if (!t) {
+                    return res.status(400).json({ error: "Unknown default template: " + templateName });
+                }
+                file = await File.create({
+                    name: t.name,
+                    icon: t.icon,
+                    description: t.description || '',
+                    color: t.color ?? t.colour ?? '',
+                    isDefaultTemplate: true
+                });
+            }
+            resolvedFileId = file._id;
+        }
+        if (!resolvedFileId) {
+            return res.status(400).json({ error: "Provide fileId or templateName" });
+        }
+        if (!mongoose.Types.ObjectId.isValid(resolvedFileId)) {
             return res.status(400).json({ error: "Invalid fileId" });
         }
-
-        const fileExists = await File.exists({ _id: fileId });
+        const fileExists = await File.exists({ _id: resolvedFileId });
         if (!fileExists) {
             return res.status(404).json({ error: "File not found" });
         }
-
         const created = await FileData.create({
-            fileId,
+            fileId: resolvedFileId,
             fileType: String(fileType).trim(),
-            fileData
+            fileData: fileData ?? {}
         });
-
         return res.status(201).json(created);
     } catch (err) {
         console.error("POST /api/file-data error:", err);
@@ -223,7 +250,7 @@ app.put("/api/file-data/:id", async (req, res) => {
     const updated = await FileData.findByIdAndUpdate(
       id,
       { fileData },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.status(200).json(updated);
@@ -235,11 +262,28 @@ app.put("/api/file-data/:id", async (req, res) => {
 
 app.get("/api/files", async (req, res) => {
     try {
-        const files = await File.find();
+        const files = await File.find({ isDefaultTemplate: { $ne: true } });
         res.status(200).json(files);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Error fetching files" });
+    }
+});
+
+// "+ New Template" – local read of default-templates.json only (no DB).
+app.get("/api/templates/default", (req, res) => {
+    try {
+        const list = readDefaultTemplates();
+        const result = list.map((t) => ({
+            name: t.name,
+            icon: t.icon,
+            description: t.description || '',
+            color: t.color ?? t.colour ?? ''
+        }));
+        res.status(200).json(result);
+    } catch (err) {
+        console.error("Error reading default templates:", err);
+        res.status(500).json({ error: "Error reading default templates" });
     }
 });
 

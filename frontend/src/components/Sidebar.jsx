@@ -41,7 +41,7 @@ export default function Sidebar() {
             <p className="no-files">No files yet</p>
           ) : (
             [...userFiles].reverse().map(file => {
-              const pathName = `${file.fileId.name.toLowerCase().replace(/\s+/g, '-')}/${file._id}`
+              const pathName = `${file.fileId.name.toLowerCase().replace(/\s+/g, '-')}/${file._id}`;
               return (
                 <Link 
                   key={file._id} 
@@ -51,7 +51,7 @@ export default function Sidebar() {
                 >
                   {file.fileId.icon} {file.fileType}
                 </Link>
-              )
+              );
             })
           )}
         </div>

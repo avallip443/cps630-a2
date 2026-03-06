@@ -20,6 +20,10 @@ const FileSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    isDefaultTemplate: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now

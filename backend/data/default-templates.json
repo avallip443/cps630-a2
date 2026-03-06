@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Project Plan",
+    "icon": "🗂️",
+    "description": "Template for tracking projects",
+    "colour": "#D5E8FF"
+  },
+  {
+    "name": "Meeting Notes",
+    "icon": "📝",
+    "description": "Template for documenting meetings",
+    "colour": "#FFE8D5"
+  },
+  {
+    "name": "Bug Report",
+    "icon": "🐛",
+    "description": "Template for tracking bugs",
+    "colour": "#FFD5D5"
+  }
+]
