@@ -35,6 +35,12 @@ The server will run on `http://localhost:5173`
 - to navigate through created user files, click on "recent" button to look at all files from most recently created to oldest
 - to delete a file, click on the "delete" button on the right bottom corner of each file
 - to save the input/information on a file, click on the green "save" button at the bottom of each file
+#### Routes
+- / --> Home Page
+- /project-plan/:id --> specific file with project plan template by id
+- /meeting-notes/:id --> specific file with project plan template by id
+- /bug-report/:id --> specific file with project plan template by id
+- ' * ' --> invalid routes
 #### API
 - POST /api/files --> creates a new file
 - POST /api/file-data --> creates file data
