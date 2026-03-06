@@ -105,8 +105,10 @@ export default function MeetingNotes() {
           />
         </div>
 
+        <div className="button-container">
         <button className="save" onClick={handleSave}>Save</button>
-        <button className="delete" onClick={handleDelete}> Delete File</button>      
+        <button className="delete" onClick={handleDelete}>Delete File</button>
+      </div>
       </div>
     </div>
   );

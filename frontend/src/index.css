@@ -182,6 +182,7 @@ label {
 }
 
 .btn-primary {
+  margin: 10px;
   max-width: 200px;
   background-color: var(--accent-colour);
 }
@@ -191,6 +192,7 @@ label {
 }
 
 .btn-delete {
+  margin-bottom: 10px;
   background-color: var(--delete-color);
   font-size: var(--small-font);
 }
@@ -408,6 +410,7 @@ select {
   grid-template-columns: 1fr 200px;
   gap: var(--padding-small);
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .error-container {
@@ -487,4 +490,10 @@ button.delete:hover {
   background-color: #f5f5f5;
   color: red;
   transform: scale(1.05);
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+  margin: 10px;
 }
