@@ -74,10 +74,9 @@ function readDefaultTemplates() {
 app.post("/api/files", async (req, res) => {
     try {
         const { name, icon, description, colour } = req.body;
-        const fileColour = colour ?? colour;
 
         //Bad Request
-        if (!name || !icon || !description || fileColour === undefined) {
+        if (!name || !icon || !description || colour === undefined) {
             return res.status(400).json({
                 error: "Missing required fields: name, icon, description, colour"
             });
@@ -93,7 +92,7 @@ app.post("/api/files", async (req, res) => {
             name: String(name).trim(),
             icon: String(icon).trim(),
             description: String(description).trim(),
-            colour: String(fileColour).trim()
+            colour: String(colour).trim()
         });
 
         return res.status(201).json(created);
@@ -108,7 +107,7 @@ app.post("/api/file-data", async (req, res) => {
     try {
         const { fileId, fileType, fileData } = req.body;
 
-        // bad request
+        //Bad request
         if (!fileId || !fileType || fileData === undefined) {
             return res.status(400).json({ 
                 error: "Missing required fields: fileId, fileType, fileData" 
