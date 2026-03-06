@@ -246,7 +246,7 @@ app.get("/api/files", async (req, res) => {
 // GET all user files
 app.get("/api/file-data", async (req, res) => {
   try {
-    const files = await FileData.find().populate("fileId"); // populates the template info
+    const files = await FileData.find().populate("fileId");
     res.status(200).json(files);
   } catch (err) {
     console.error("Error fetching user files:", err);
