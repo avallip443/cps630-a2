@@ -107,26 +107,29 @@ app.post("/api/file-data", async (req, res) => {
     try {
         const { fileId, fileType, fileData } = req.body;
 
-        //Bad request
+        // missing required fields
         if (!fileId || !fileType || fileData === undefined) {
-            return res.status(400).json({ 
-                error: "Missing required fields: fileId, fileType, fileData" 
+            return res.status(400).json({
+                error: "Missing required fields: fileId, fileType, fileData"
             });
         }
 
+        // invalid id for file 
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid fileId" });
         }
 
+        // associated file does not exist
         const fileExists = await File.exists({ _id: fileId });
         if (!fileExists) {
             return res.status(404).json({ error: "File not found" });
         }
 
+        // create file data
         const created = await FileData.create({
             fileId,
             fileType: String(fileType).trim(),
-            fileData
+            fileData: fileData || {}
         });
 
         return res.status(201).json(created);
