@@ -134,11 +134,31 @@ label {
 .dropdown-menu {
   display: none;
   flex-direction: column;
-  margin-left: 10px;
+  margin-left: var(--padding-xs);
+  gap: var(--padding-xs);
 }
 
 .dropdown-menu.show {
   display: flex;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: var(--padding-xs);
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  font-size: var(--small-font);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background-color: #e0f2fe;
+  border-color: var(--border-colour);
 }
 
 .dropdown-menu a {
