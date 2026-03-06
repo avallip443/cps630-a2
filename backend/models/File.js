@@ -16,7 +16,7 @@ const FileSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    color: {
+    colour: {
         type: String,
         trim: true
     },

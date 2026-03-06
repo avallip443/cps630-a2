@@ -41,17 +41,17 @@ export default function Sidebar() {
             <p className="no-files">No files yet</p>
           ) : (
             [...userFiles].reverse().map(file => {
-              const pathName = `${file.fileId.name.toLowerCase().replace(/\s+/g, '-')}/${file._id}`
+              const pathName = `${file.fileId.name.toLowerCase().replace(/\s+/g, '-')}/${file._id}`;
               return (
                 <Link 
                   key={file._id} 
                   to={`/${pathName}`} 
                   className="dropdown-item"
-                  style={{ borderLeft: `4px solid ${file.fileId.color}` }}
+                  style={{ borderLeft: `4px solid ${file.fileId.colour}` }}
                 >
                   {file.fileId.icon} {file.fileType}
                 </Link>
-              )
+              );
             })
           )}
         </div>

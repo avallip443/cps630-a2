@@ -2,9 +2,12 @@ const express   = require('express');
 const cors      = require('cors');
 const app       = express();
 const path      = require('path');
+const fs        = require('fs');
 const { default: mongoose } = require('mongoose');
 const File = require('./models/File');
 const FileData = require('./models/FileData');
+
+const DEFAULT_TEMPLATES_PATH = path.join(__dirname, 'data', 'default-templates.json');
 
 const PORT          = 8080;
 const DATABASE_HOST = 'localhost';
@@ -27,14 +30,14 @@ db.on('open', function() {
     console.log('database connected')
 });
 
-//test files
-let file_database = [
-  {name: "Bug Report", icon: "🐞", description: "Documenting software bugs and issues", color: "#E53935"},
-  {name: "Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", color: "#1E88E5"},
-  {name: "Project Plan",icon: "📊",description: "Project timeline, milestones, and deliverables",color: "#43A047"}
+// Test data
+const file_database = [
+    { name: "Test Bug Report", icon: "🐞", description: "Documenting software bugs and issues", colour: "#E53935" },
+    { name: "Test Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", colour: "#1E88E5" },
+    { name: "Test Project Plan", icon: "📊", description: "Project timeline, milestones, and deliverables", colour: "#43A047" }
 ];
 
-//adding test data
+// Add test data
 async function addTestFilesToMongoDB() {
     const fileCount = await File.countDocuments();
 
@@ -45,28 +48,37 @@ async function addTestFilesToMongoDB() {
             const newFile = new File(file);
             newFile.save()
             .then( () => console.log('File added with name ' + file.name))
-            .catch(err =>  console.error('Error Adding File with Title ' + file.name)); 
+            .catch(err =>  console.error('Error adding file with name ' + file.name, err)); 
         })
     }
     else {
-        console.log('files already exist...');
+        console.log('Files already exist...');
         return;
     }
 }
 addTestFilesToMongoDB();
+
+function readDefaultTemplates() {
+    try {
+        const raw = fs.readFileSync(DEFAULT_TEMPLATES_PATH, 'utf8');
+        return JSON.parse(raw);
+    } catch (err) {
+        console.error('Error reading default-templates.json:', err);
+        return [];
+    }
+}
 
 /* CREATE ITEM */
 
 /* CREATE FILE ITEM */
 app.post("/api/files", async (req, res) => {
     try {
-        const { name, icon, description, colour, color } = req.body;
-        const fileColor = color ?? colour;
+        const { name, icon, description, colour } = req.body;
 
         //Bad Request
-        if (!name || !icon || !description || fileColor === undefined) {
+        if (!name || !icon || !description || colour === undefined) {
             return res.status(400).json({
-                error: "Missing required fields: name, icon, description, color (or colour)"
+                error: "Missing required fields: name, icon, description, colour"
             });
         }
 
@@ -80,7 +92,7 @@ app.post("/api/files", async (req, res) => {
             name: String(name).trim(),
             icon: String(icon).trim(),
             description: String(description).trim(),
-            color: String(fileColor).trim()
+            colour: String(colour).trim()
         });
 
         return res.status(201).json(created);
@@ -95,14 +107,13 @@ app.post("/api/file-data", async (req, res) => {
     try {
         const { fileId, fileType, fileData } = req.body;
 
-        //Bad Request
+        //Bad request
         if (!fileId || !fileType || fileData === undefined) {
-            return res.status(400).json({
-                error: "Missing required fields: fileId, fileType, fileData"
+            return res.status(400).json({ 
+                error: "Missing required fields: fileId, fileType, fileData" 
             });
         }
 
-        //Validate ObjectId
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid fileId" });
         }
@@ -223,7 +234,7 @@ app.put("/api/file-data/:id", async (req, res) => {
     const updated = await FileData.findByIdAndUpdate(
       id,
       { fileData },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.status(200).json(updated);
@@ -240,6 +251,23 @@ app.get("/api/files", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Error fetching files" });
+    }
+});
+
+// "+ New Template" – local read of default-templates.json only (no DB).
+app.get("/api/templates/default", (req, res) => {
+    try {
+        const list = readDefaultTemplates();
+        const result = list.map((t) => ({
+            name: t.name,
+            icon: t.icon,
+            description: t.description || '',
+            colour: t.colour ?? t.colour ?? ''
+        }));
+        res.status(200).json(result);
+    } catch (err) {
+        console.error("Error reading default templates:", err);
+        res.status(500).json({ error: "Error reading default templates" });
     }
 });
 
