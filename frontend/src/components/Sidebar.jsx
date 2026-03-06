@@ -41,7 +41,7 @@ export default function Sidebar() {
           {files.length === 0 ? (
             <p className="no-files">No files yet</p>
           ) : (
-            files.map(file => (
+            [...files].reverse().map(file => (
               <button
                 key={file.name}
                 type="button"
