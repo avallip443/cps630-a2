@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import Modal from "../components/Modal";
+import FileCard from "../components/FileCard";
+import EmptyState from "../components/EmptyState";
+import TemplateOption from "../components/TemplateOption";
+import CustomizeFileForm from "../components/CustomizeFileForm";
 
 const API = "http://localhost:8080";
 
@@ -7,8 +12,15 @@ export default function Home() {
   const [defaultTemplates, setDefaultTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [formValues, setFormValues] = useState({
+    name: "",
+    description: "",
+    colour: "",
+  });
+  const [formError, setFormError] = useState("");
 
-  async function fetchFiles() {
+  const fetchFiles = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/files`);
@@ -19,7 +31,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchFiles();
@@ -30,34 +42,74 @@ export default function Home() {
     let cancelled = false;
     fetch(`${API}/api/templates/default`)
       .then((r) => r.json())
-      .then((data) => { if (!cancelled) setDefaultTemplates(data); })
+      .then((data) => {
+        if (!cancelled) setDefaultTemplates(data);
+      })
       .catch((err) => console.error("Error fetching templates:", err));
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [showModal]);
 
-  const createNewFile = async (template) => {
-    const fileName = prompt("Enter a name for your new file:");
-    if (!fileName) return;
+  const openEditPopup = (template) => {
+    setEditingTemplate(template);
+    setFormValues({
+      name: template.name ?? "",
+      description: template.description ?? "",
+      colour: template.colour ?? "",
+    });
+    setFormError("");
+  };
+
+  const closeEditPopup = () => {
+    setEditingTemplate(null);
+    setFormError("");
+  };
+
+  const closeModal = () => {
+    closeEditPopup();
+    setShowModal(false);
+  };
+
+  const handleSubmitFile = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    const name = formValues.name.trim();
+    if (!name) {
+      setFormError("Name is required.");
+      return;
+    }
+
+    const description =
+      formValues.description.trim() || (editingTemplate?.description ?? "");
+    const colour =
+      formValues.colour.trim() || (editingTemplate?.colour ?? "");
+    const icon = editingTemplate?.icon ?? "📄";
+
     try {
-      const body = { fileType: fileName, fileData: {} };
-      if (template._id) {
-        body.fileId = template._id;
-      } else {
-        body.templateName = template.name;
-      }
-      const response = await fetch(`${API}/api/file-data`, {
+      const response = await fetch(`${API}/api/files`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ name, icon, description, colour }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to create file");
-      setShowModal(false);
-      alert(`File "${fileName}" created!`);
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          setFormError(
+            "A file with this name already exists. Choose a unique name."
+          );
+          return;
+        }
+        throw new Error(data.error ?? "Failed to add file");
+      }
+
+      closeModal();
       fetchFiles();
     } catch (err) {
-      console.error("Error creating file:", err);
-      alert(err.message || "Error creating file");
+      console.error("Error adding file:", err);
+      setFormError(err.message ?? "Error adding file");
     }
   };
 
@@ -80,62 +132,39 @@ export default function Home() {
         {loading ? (
           <p>Loading...</p>
         ) : userFiles.length === 0 ? (
-          <div className="empty-state">
-            <h1>No files yet</h1>
-            <p>Create one using + New Template</p>
-          </div>
+          <EmptyState description="Create one using + New Template" />
         ) : (
-          userFiles.map((item) => (
-            <div
-              key={item._id}
-              className="file-card"
-              style={{ borderLeft: `6px solid ${item.colour || ""}` }}
-            >
-              <h2>{item.icon} {item.name}</h2>
-              <p>{item.description}</p>
-            </div>
-          ))
+          userFiles.map((file) => <FileCard key={file.name} file={file} />)
         )}
       </div>
-      {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Select Template</h2>
-              <button
-                className="modal-close"
-                onClick={() => setShowModal(false)}
-              >
-                ×
-              </button>
-            </div>
 
+      {showModal && (
+        <Modal
+          title={editingTemplate ? "Customize file" : "Select Template"}
+          onClose={editingTemplate ? closeEditPopup : closeModal}
+        >
+          {editingTemplate ? (
+            <CustomizeFileForm
+              values={formValues}
+              onChange={setFormValues}
+              onSubmit={handleSubmitFile}
+              onCancel={closeEditPopup}
+              error={formError}
+            />
+          ) : (
             <div className="modal-body">
               <div className="items-list">
                 {defaultTemplates.map((template) => (
-                  <button
+                  <TemplateOption
                     key={template.name}
-                    className="item-option"
-                    onClick={() => createNewFile(template)}
-                  >
-                    <div className="icon">
-                      {template.icon}
-                    </div>
-
-                    <div className="item-option-content">
-                      <div className="item-option-title">
-                        {template.name}
-                      </div>
-                      <div className="item-option-desc">
-                        {template.description}
-                      </div>
-                    </div>
-                  </button>
+                    template={template}
+                    onSelect={openEditPopup}
+                  />
                 ))}
               </div>
             </div>
-          </div>
-        </div>
+          )}
+        </Modal>
       )}
     </>
   );
