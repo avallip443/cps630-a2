@@ -16,7 +16,7 @@ git clone https://github.com/avallip443/cps630-a2.git
 
 2. **Install dependencies**
 ```
-npm install
+npm install (on both backend and frontend)
 ```
 
 3. **Start the Server:**
@@ -35,6 +35,12 @@ The server will run on `http://localhost:5173`
 - to navigate through created user files, click on "recent" button to look at all files from most recently created to oldest
 - to delete a file, click on the "delete" button on the right bottom corner of each file
 - to save the input/information on a file, click on the green "save" button at the bottom of each file
+#### Routes
+- / --> Home Page
+- /project-plan/:id --> specific file with project plan template by id
+- /meeting-notes/:id --> specific file with project plan template by id
+- /bug-report/:id --> specific file with project plan template by id
+- ' * ' --> invalid routes
 #### API
 - POST /api/files --> creates a new file
 - POST /api/file-data --> creates file data
@@ -46,8 +52,7 @@ The server will run on `http://localhost:5173`
 - DELETE /api/file-data/:id --> deletes corresponding file
   
 ## Reflection
-For this assignment, we created and submitted the code for our web application, along with a demo video showcasing our organizational platform.
-A success we experienced during this assignment is successfully migrating our previous assignment/code to utilize MongoDB. 
-A difficulty we encountered 
+For this assignment, we created and submitted the code for our web application along with a demo video showcasing our organizational platform. One success we experienced we had was being more efficient and organized which allowed us to successfully migrate our previous assignment’s code to utilize MongoDB. In this assignment, we used two databases where one collection (“File”) was linked to another (“FileData”). Connecting these two collections and ensuring that our functions—such as create, update, and delete—worked correctly across both was somewhat challenging. However, through collaboration and consistent communication within the team, we were able to resolve these issues and complete the assignment successfully.
+
 
 
