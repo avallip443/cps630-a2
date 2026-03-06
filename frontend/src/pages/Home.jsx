@@ -98,47 +98,45 @@ export default function Home() {
         )}
       </div>
       {showModal && (
-  <div className="modal">
-    <div className="modal-content">
-      
-      <div className="modal-header">
-        <h2>Select Template</h2>
-        <button
-          className="modal-close"
-          onClick={() => setShowModal(false)}
-        >
-          ×
-        </button>
-      </div>
+        <div className="modal">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Select Template</h2>
+              <button
+                className="modal-close"
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
 
-      <div className="modal-body">
-        <div className="items-list">
-          {defaultTemplates.map((template) => (
-            <button
-              key={template._id ?? template.name}
-              className="item-option"
-              onClick={() => createNewFile(template)}
-            >
-              <div className="icon">
-                {template.icon}
-              </div>
+            <div className="modal-body">
+              <div className="items-list">
+                {defaultTemplates.map((template) => (
+                  <button
+                    key={template.name}
+                    className="item-option"
+                    onClick={() => createNewFile(template)}
+                  >
+                    <div className="icon">
+                      {template.icon}
+                    </div>
 
-              <div className="item-option-content">
-                <div className="item-option-title">
-                  {template.name}
-                </div>
-                <div className="item-option-desc">
-                  {template.description}
-                </div>
+                    <div className="item-option-content">
+                      <div className="item-option-title">
+                        {template.name}
+                      </div>
+                      <div className="item-option-desc">
+                        {template.description}
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </button>
-          ))}
+            </div>
+          </div>
         </div>
-      </div>
-
-    </div>
-  </div>
-)}
-        </>
+      )}
+    </>
   );
 }
