@@ -38,10 +38,11 @@ The server will run on `http://localhost:5173`
 #### API
 - POST /api/files --> creates a new file
 - POST /api/file-data --> creates file data
+- GET /api/files --> reads all template files
 - GET /api/files/:id --> reads/retrieves one file by ID
+- GET /api/file-data --> retrieves all files
 - GET /api/file-data/:fileId --> retrieves all files by fileId
 - GET /api/file-data/item/:id --> reads all data from a single file  by ID
-- PATCH /api/file-data/:fileId --> updates content of corresponding file
 - DELETE /api/file-data/:id --> deletes corresponding file
   
 ## Reflection
