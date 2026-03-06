@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
+const API = 'http://localhost:8080'
+
 export default function Sidebar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [userFiles, setUserFiles] = useState([])
+  const [files, setFiles] = useState([])
 
-  // Fetch user files when sidebar mounts
   useEffect(() => {
-    async function fetchUserFiles() {
+    async function fetchFiles() {
       try {
-        const res = await fetch('http://localhost:8080/api/file-data')
+        const res = await fetch(`${API}/api/files`)
         const data = await res.json()
-        setUserFiles(data)
+        setFiles(data)
       } catch (err) {
-        console.error('Error fetching user files:', err)
+        console.error('Error fetching files:', err)
       }
     }
 
-    fetchUserFiles()
+    fetchFiles()
   }, [])
 
   return (
@@ -37,22 +38,19 @@ export default function Sidebar() {
         </button>
 
         <div className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
-          {userFiles.length === 0 ? (
+          {files.length === 0 ? (
             <p className="no-files">No files yet</p>
           ) : (
-            [...userFiles].reverse().map(file => {
-              const pathName = `${file.fileId.name.toLowerCase().replace(/\s+/g, '-')}/${file._id}`;
-              return (
-                <Link 
-                  key={file._id} 
-                  to={`/${pathName}`} 
-                  className="dropdown-item"
-                  style={{ borderLeft: `4px solid ${file.fileId.colour}` }}
-                >
-                  {file.fileId.icon} {file.fileType}
-                </Link>
-              );
-            })
+            files.map(file => (
+              <button
+                key={file.name}
+                type="button"
+                className="dropdown-item"
+                style={{ borderLeft: `4px solid ${file.colour || 'transparent'}` }}
+              >
+                {file.icon} {file.name}
+              </button>
+            ))
           )}
         </div>
       </nav>
