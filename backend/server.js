@@ -32,9 +32,9 @@ db.on('open', function() {
 
 // Test data
 const file_database = [
-    { name: "Test Bug Report", icon: "🐞", description: "Documenting software bugs and issues", color: "#E53935" },
-    { name: "Test Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", color: "#1E88E5" },
-    { name: "Test Project Plan", icon: "📊", description: "Project timeline, milestones, and deliverables", color: "#43A047" }
+    { name: "Test Bug Report", icon: "🐞", description: "Documenting software bugs and issues", colour: "#E53935" },
+    { name: "Test Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", colour: "#1E88E5" },
+    { name: "Test Project Plan", icon: "📊", description: "Project timeline, milestones, and deliverables", colour: "#43A047" }
 ];
 
 // Add test data
@@ -73,13 +73,13 @@ function readDefaultTemplates() {
 /* CREATE FILE ITEM */
 app.post("/api/files", async (req, res) => {
     try {
-        const { name, icon, description, colour, color } = req.body;
-        const fileColor = color ?? colour;
+        const { name, icon, description, colour } = req.body;
+        const fileColour = colour ?? colour;
 
         //Bad Request
-        if (!name || !icon || !description || fileColor === undefined) {
+        if (!name || !icon || !description || fileColour === undefined) {
             return res.status(400).json({
-                error: "Missing required fields: name, icon, description, color (or colour)"
+                error: "Missing required fields: name, icon, description, colour"
             });
         }
 
@@ -93,7 +93,7 @@ app.post("/api/files", async (req, res) => {
             name: String(name).trim(),
             icon: String(icon).trim(),
             description: String(description).trim(),
-            color: String(fileColor).trim()
+            colour: String(fileColour).trim()
         });
 
         return res.status(201).json(created);
@@ -106,45 +106,30 @@ app.post("/api/files", async (req, res) => {
 /* CREATE FILE DATA */
 app.post("/api/file-data", async (req, res) => {
     try {
-        const { fileId, templateName, fileType, fileData } = req.body;
-        if (!fileType || fileData === undefined) {
-            return res.status(400).json({ error: "Missing required fields: fileType, fileData" });
+        const { fileId, fileType, fileData } = req.body;
+
+        // bad request
+        if (!fileId || !fileType || fileData === undefined) {
+            return res.status(400).json({ 
+                error: "Missing required fields: fileId, fileType, fileData" 
+            });
         }
 
-        let resolvedFileId = fileId;
-        if (!resolvedFileId && templateName) {
-            let file = await File.findOne({ name: String(templateName).trim() });
-            if (!file) {
-                const list = readDefaultTemplates();
-                const t = list.find((x) => x.name === templateName);
-                if (!t) {
-                    return res.status(400).json({ error: "Unknown default template: " + templateName });
-                }
-                file = await File.create({
-                    name: t.name,
-                    icon: t.icon,
-                    description: t.description || '',
-                    color: t.color ?? t.colour ?? '',
-                    isDefaultTemplate: true
-                });
-            }
-            resolvedFileId = file._id;
-        }
-        if (!resolvedFileId) {
-            return res.status(400).json({ error: "Provide fileId or templateName" });
-        }
-        if (!mongoose.Types.ObjectId.isValid(resolvedFileId)) {
+        if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid fileId" });
         }
-        const fileExists = await File.exists({ _id: resolvedFileId });
+
+        const fileExists = await File.exists({ _id: fileId });
         if (!fileExists) {
             return res.status(404).json({ error: "File not found" });
         }
+
         const created = await FileData.create({
-            fileId: resolvedFileId,
+            fileId,
             fileType: String(fileType).trim(),
-            fileData: fileData ?? {}
+            fileData
         });
+
         return res.status(201).json(created);
     } catch (err) {
         console.error("POST /api/file-data error:", err);
@@ -262,7 +247,7 @@ app.put("/api/file-data/:id", async (req, res) => {
 
 app.get("/api/files", async (req, res) => {
     try {
-        const files = await File.find({ isDefaultTemplate: { $ne: true } });
+        const files = await File.find();
         res.status(200).json(files);
     } catch (err) {
         console.error(err);
@@ -278,7 +263,7 @@ app.get("/api/templates/default", (req, res) => {
             name: t.name,
             icon: t.icon,
             description: t.description || '',
-            color: t.color ?? t.colour ?? ''
+            colour: t.colour ?? t.colour ?? ''
         }));
         res.status(200).json(result);
     } catch (err) {

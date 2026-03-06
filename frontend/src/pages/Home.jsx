@@ -90,7 +90,7 @@ export default function Home() {
             const name = isFileData ? item.fileId.name : item.name;
             const icon = isFileData ? item.fileId.icon : item.icon;
             const description = isFileData ? item.fileId.description : item.description;
-            const color = isFileData ? item.fileId.color : item.color;
+            const colour = isFileData ? item.fileId.colour : item.colour;
             const label = isFileData ? item.fileType : item.name;
 
             if (isFileData) {
@@ -100,7 +100,7 @@ export default function Home() {
                   key={item._id}
                   to={`/${slug}/${item._id}`}
                   className="file-card"
-                  style={{ borderLeft: `6px solid ${color}` }}
+                  style={{ borderLeft: `6px solid ${colour}` }}
                 >
                   <h2>{icon} {label}</h2>
                   <p>{description}</p>
@@ -111,7 +111,7 @@ export default function Home() {
               <div
                 key={item._id}
                 className="file-card"
-                style={{ borderLeft: `6px solid ${color}` }}
+                style={{ borderLeft: `6px solid ${colour}` }}
               >
                 <h2>{icon} {label}</h2>
                 <p>{description}</p>

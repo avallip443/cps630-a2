@@ -47,7 +47,7 @@ export default function Sidebar() {
                   key={file._id} 
                   to={`/${pathName}`} 
                   className="dropdown-item"
-                  style={{ borderLeft: `4px solid ${file.fileId.color}` }}
+                  style={{ borderLeft: `4px solid ${file.fileId.colour}` }}
                 >
                   {file.fileId.icon} {file.fileType}
                 </Link>
