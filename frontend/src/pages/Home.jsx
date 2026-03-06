@@ -53,6 +53,11 @@ const createNewFile = async (template) => {
 
     const data = await response.json();
     console.log("Created file:", data);
+    
+    setUserFiles(prev => [
+      { ...data, fileId: template }, // replace fileId with template info
+      ...prev
+    ]);
 
     setShowModal(false);
     alert(`File "${fileName}" created! You can now edit it.`);
