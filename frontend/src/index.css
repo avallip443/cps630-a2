@@ -161,16 +161,9 @@ label {
   border-color: var(--border-colour);
 }
 
-.dropdown-menu a {
+a.dropdown-item {
   text-decoration: none;
-  padding: 8px 12px;
-  color: var(--text-primary);
-  font-size: 14px;
-  border-radius: 6px;
-}
-
-.dropdown-menu a:hover {
-  background-color: #dbeafe;
+  color: inherit;
 }
 
 .header {
@@ -352,6 +345,16 @@ label {
   font-size: var(--small-font);
 }
 
+.error {
+  padding: var(--padding-medium);
+  color: var(--delete-color);
+}
+
+.error a {
+  color: var(--accent-colour);
+  margin-left: 0.5rem;
+}
+
 .modal-actions {
   display: flex;
   gap: var(--padding-small);
@@ -485,13 +488,18 @@ select {
   border: 1px solid var(--border-colour);
   border-radius: var(--border-radius);
   padding: var(--padding-medium);
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: var(--padding-medium);
-  text-decoration: none; /* prevents link underline */
   color: var(--text-primary);
   transition: 0.2s ease;
+}
+
+.file-card-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  display: block;
 }
 
 .file-card:hover {
