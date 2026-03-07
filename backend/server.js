@@ -205,21 +205,32 @@ app.put("/api/files/:fileId/file-data", async (req, res) => {
     }
 });
 
-/* DELETE FILE DATA (by fileId) */
+/* DELETE FILE + FILE DATA (by fileId) */
 app.delete("/api/files/:fileId/file-data", async (req, res) => {
     try {
         const { fileId } = req.params;
+
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
+
         const file = await File.findById(fileId);
-        if (!file) return res.status(404).json({ error: "File not found" });
-        const deleted = await FileData.findOneAndDelete({ fileId, fileType: file.fileType });
-        if (!deleted) return res.status(404).json({ error: "File data not found" });
-        res.status(200).json({ message: "Deleted" });
+        if (!file) {
+            return res.status(404).json({ error: "File not found" });
+        }
+
+        // delete all linked fileData records for this file
+        await FileData.deleteMany({ fileId });
+
+        // delete the actual file
+        await File.findByIdAndDelete(fileId);
+
+        return res.status(200).json({
+            message: "File and file data deleted successfully"
+        });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error deleting file data" });
+        console.error("DELETE /api/files/:fileId/file-data error:", err);
+        return res.status(500).json({ error: "Error deleting file and file data" });
     }
 });
 
@@ -287,29 +298,40 @@ app.get("/api/file-data/item/:id", async (req, res) => {
     }
 });
 
-/* DELETE ITEM */
-app.delete('/api/file-data/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+// /* DELETE ITEM */
+// app.delete('/api/file-data/:id', async (req, res) => {
+//     try {
+//         const { id } = req.params;
 
-        // Validate ID
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid ID" });
-        }
+//         // Validate ID
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ error: "Invalid ID" });
+//         }
 
-        const deleted = await FileData.findByIdAndDelete(id);
+//         //Find the fileData Doc
+//         const fileDataDoc = await FileData.findById(id);
 
-        if (!deleted) {
-            return res.status(404).json({ error: "File Data Not Found" });
-        }
+//         if (!fileDataDoc) {
+//             return res.status(404).json({ error: "File Data Not Found" });
+//         }
 
-        return res.status(200).json({ message: "File Deleted Successfully" });
+//         const linkedFileId = fileDataDoc.fileId;
 
-    } catch (err) {
-        console.error("DELETE /api/file-data error:", err);
-        return res.status(500).json({ error: "Server error deleting file" });
-    }
-});
+//         //Delete the FileData Doc
+//         await FileData.findByIdAndDelete(id);
+
+//         //Delete the linked file doc
+//         if (linkedFileId) {
+//             await File.findByIdAndDelete(linkedFileId);
+//         }
+
+//         return res.status(200).json({ message: "File and file data deleted succesfully" });
+
+//     } catch (err) {
+//         console.error("DELETE /api/file-data error:", err);
+//         return res.status(500).json({ error: "Server error deleting file" });
+//     }
+// });
 
 
 /* SAVE EDITS (UPDATE) */
