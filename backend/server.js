@@ -212,10 +212,11 @@ app.put("/api/file-data/:fileId", async (req, res) => {
     }
 });
 
-/* delete fileData by fileId */
+/* DELETE FILE + FILEDATA by fileId */
 app.delete("/api/file-data/:fileId", async (req, res) => {
     try {
         const { fileId } = req.params;
+
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
@@ -225,17 +226,18 @@ app.delete("/api/file-data/:fileId", async (req, res) => {
             return res.status(404).json({ error: "File not found" });
         }
 
-        const deleted = await FileData.findOneAndDelete({ fileId, fileType: file.fileType });
-        if (!deleted) {
-            return res.status(404).json({ error: "File data not found" });
-        }
+        await FileData.deleteMany({ fileId });
+        await File.findByIdAndDelete(fileId);
 
-        res.status(200).json({ message: "Deleted" });
+        return res.status(200).json({
+            message: "File and file data deleted successfully"
+        });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error deleting file data" });
+        console.error("DELETE /api/file-data/:fileId error:", err);
+        return res.status(500).json({ error: "Error deleting file and file data" });
     }
 });
+
 
 /* READ ITEM (one file using id) */
 app.get("/api/files/:id", async (req, res) => {
