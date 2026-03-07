@@ -31,7 +31,7 @@ export default function Sidebar() {
         <button
           type="button"
           className="nav-item"
-          onClick={() => setDropdownOpen(open => !open)}
+          onClick={() => setDropdownOpen((o) => !o)}
         >
           <span className="side-folder-name">&gt; Recent</span>
         </button>

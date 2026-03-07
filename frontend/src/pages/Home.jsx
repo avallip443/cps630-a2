@@ -27,22 +27,16 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
+  useEffect(() => { fetchFiles(); }, []);
 
   useEffect(() => {
     if (!showModal) return;
     let cancelled = false;
     fetch(`${API}/api/templates/default`)
       .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled) setDefaultTemplates(data);
-      })
-      .catch((err) => console.error("Error fetching templates:", err));
-    return () => {
-      cancelled = true;
-    };
+      .then((data) => { if (!cancelled) setDefaultTemplates(data); })
+      .catch(console.error);
+    return () => { cancelled = true; };
   }, [showModal]);
 
   const openEditPopup = (template) => {
@@ -55,15 +49,15 @@ export default function Home() {
     setFormError("");
   };
 
-  const closeEditPopup = () => {
-    setEditingTemplate(null);
-    setFormError("");
-  };
-
   const closeModal = () => {
     setEditingTemplate(null);
     setFormError("");
     setShowModal(false);
+  };
+
+  const closeEditPopup = () => {
+    setEditingTemplate(null);
+    setFormError("");
   };
 
   const handleSubmitFile = async (e) => {
@@ -101,8 +95,9 @@ export default function Home() {
         throw new Error(data.error ?? "Failed to add file");
       }
 
-      closeModal();
-      fetchFiles();
+    closeModal();
+    fetchFiles(); 
+    window.dispatchEvent(new Event("filesUpdated"));
     } catch (err) {
       console.error("Error adding file:", err);
       setFormError(err.message ?? "Error adding file");

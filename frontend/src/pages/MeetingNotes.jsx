@@ -31,7 +31,6 @@ export default function MeetingNotes() {
         <h1>📝 {file.name}</h1>
         <p className="subtitle">Template for documenting meetings</p>
       </div>
-
       <div className="container">
         <div className="section">
           <h2>Meeting Details</h2>
@@ -51,7 +50,6 @@ export default function MeetingNotes() {
             onChange={(e) => handleChange('attendees', e.target.value)}
           />
         </div>
-
         <div className="section">
           <h2>Discussion Points</h2>
           <textarea
@@ -60,7 +58,7 @@ export default function MeetingNotes() {
             onChange={(e) => handleChange('discussion', e.target.value)}
           />
         </div>
-        
+
         <div className="section">
           <h2>Key Takeaways</h2>
           <textarea
@@ -69,7 +67,6 @@ export default function MeetingNotes() {
             onChange={(e) => handleChange('takeaways', e.target.value)}
           />
         </div>
-
         <div className="button-container">
           <button type="button" className="save" onClick={handleSave}>Save</button>
           <button type="button" className="delete" onClick={handleDelete}>Delete File</button>

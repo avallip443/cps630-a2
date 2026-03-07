@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFileWithData, saveFileData, deleteFileData } from '../api';
 
-/** This ;oad file + fileData by fileId; save/delete by fileId; populates form from fileData. */
+/** Load file + fileData by fileId; save/delete by fileId. Just populates form from fileData. */
 export function useFileData() {
   const { fileId } = useParams();
   const navigate = useNavigate();
@@ -43,16 +43,18 @@ export function useFileData() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Confirm Delete File?')) return;
-    try {
-      await deleteFileData(fileId);
-      alert('File Deleted!');
-      navigate('/');
-    } catch (err) {
-      console.error(err);
-      alert(err.message || 'Delete failed');
-    }
-  };
+  if (!window.confirm('Confirm Delete File?')) return;
+
+  try {
+    await deleteFileData(fileId);       
+    window.dispatchEvent(new Event('filesUpdated')); 
+    alert('File Deleted!');
+    navigate('/');                       
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Delete failed');
+  }
+};
 
   return { file, fileData, handleChange, handleSave, handleDelete, loading, error };
 }
