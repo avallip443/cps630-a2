@@ -4,8 +4,7 @@ import FileCard from "../components/FileCard";
 import EmptyState from "../components/EmptyState";
 import TemplateOption from "../components/TemplateOption";
 import CustomizeFileForm from "../components/CustomizeFileForm";
-
-const API = "http://localhost:8080";
+import { API } from "../api";
 
 export default function Home() {
   const [userFiles, setUserFiles] = useState([]);
@@ -13,19 +12,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [formValues, setFormValues] = useState({
-    name: "",
-    description: "",
-    colour: "",
-  });
+  const [formValues, setFormValues] = useState({ name: "", description: "", colour: "" });
   const [formError, setFormError] = useState("");
 
   const fetchFiles = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/files`);
-      const files = await res.json();
-      setUserFiles(files);
+      setUserFiles(await res.json());
     } catch (err) {
       console.error("Error fetching files:", err);
     } finally {
@@ -33,22 +27,16 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
+  useEffect(() => { fetchFiles(); }, []);
 
   useEffect(() => {
     if (!showModal) return;
     let cancelled = false;
     fetch(`${API}/api/templates/default`)
       .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled) setDefaultTemplates(data);
-      })
-      .catch((err) => console.error("Error fetching templates:", err));
-    return () => {
-      cancelled = true;
-    };
+      .then((data) => { if (!cancelled) setDefaultTemplates(data); })
+      .catch(console.error);
+    return () => { cancelled = true; };
   }, [showModal]);
 
   const openEditPopup = (template) => {
@@ -61,14 +49,15 @@ export default function Home() {
     setFormError("");
   };
 
+  const closeModal = () => {
+    setEditingTemplate(null);
+    setFormError("");
+    setShowModal(false);
+  };
+
   const closeEditPopup = () => {
     setEditingTemplate(null);
     setFormError("");
-  };
-
-  const closeModal = () => {
-    closeEditPopup();
-    setShowModal(false);
   };
 
   const handleSubmitFile = async (e) => {
@@ -86,12 +75,13 @@ export default function Home() {
     const colour =
       formValues.colour.trim() || (editingTemplate?.colour ?? "");
     const icon = editingTemplate?.icon ?? "📄";
+    const fileType = editingTemplate?.type ?? "project-plan";
 
     try {
       const response = await fetch(`${API}/api/files`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, icon, description, colour }),
+        body: JSON.stringify({ name, icon, description, colour, fileType }),
       });
       const data = await response.json();
 

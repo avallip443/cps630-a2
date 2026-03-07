@@ -5,7 +5,6 @@ import ProjectPlan from './pages/ProjectPlan'
 import MeetingNotes from './pages/MeetingNotes'
 import BugReport from './pages/BugReport'
 import NotFound from './pages/NotFound'
-import FileEditor from './pages/FileEditor';
 
 function App() {
   return (
@@ -13,10 +12,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="project-plan/:id" element={<ProjectPlan />} />
-          <Route path="meeting-notes/:id" element={<MeetingNotes />} />
-          <Route path="bug-report/:id" element={<BugReport />} />
-          <Route path="file/:id" element={<FileEditor />} /> 
+          <Route path="project-plan/:fileId" element={<ProjectPlan />} />
+          <Route path="meeting-notes/:fileId" element={<MeetingNotes />} />
+          <Route path="bug-report/:fileId" element={<BugReport />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
