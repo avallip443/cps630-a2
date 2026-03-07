@@ -14,12 +14,10 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    // initial load
-    fetchFiles();
+    fetchFiles(); 
 
-    // listen for refresh events
     const handleRefresh = () => {
-      fetchFiles();
+      fetchFiles(); 
     };
 
     window.addEventListener("filesUpdated", handleRefresh);
