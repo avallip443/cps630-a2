@@ -6,18 +6,25 @@ export default function Sidebar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [files, setFiles] = useState([]);
 
-  useEffect(() => {
-    async function fetchFiles() {
-      try {
-        const res = await fetch(`${API}/api/files`);
-        const data = await res.json();
-        setFiles(data);
-      } catch (err) {
-        console.error('Error fetching files:', err);
-        setFiles([]);
-      }
+  const fetchFiles = async () => {
+    try {
+      const res = await fetch(`${API}/api/files`);
+      const data = await res.json();
+      setFiles(data);
+    } catch (err) {
+      console.error('Error fetching files:', err);
+      setFiles([]);
     }
+  };
+
+  useEffect(() => {
     fetchFiles();
+  }, []);
+
+  useEffect(() => {
+    const onFilesUpdated = () => fetchFiles();
+    window.addEventListener('filesUpdated', onFilesUpdated);
+    return () => window.removeEventListener('filesUpdated', onFilesUpdated);
   }, []);
 
   return (
