@@ -298,49 +298,40 @@ app.get("/api/file-data/item/:id", async (req, res) => {
     }
 });
 
-/* DELETE ITEM */
-app.delete('/api/file-data/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+// /* DELETE ITEM */
+// app.delete('/api/file-data/:id', async (req, res) => {
+//     try {
+//         const { id } = req.params;
 
-        // Validate ID
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid ID" });
-        }
+//         // Validate ID
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ error: "Invalid ID" });
+//         }
 
-        //Find the fileData Doc
-        const fileDataDoc = await FileData.findById(id);
+//         //Find the fileData Doc
+//         const fileDataDoc = await FileData.findById(id);
 
-        if (!fileDataDoc) {
-            return res.status(404).json({ error: "File Data Not Found" });
-        }
+//         if (!fileDataDoc) {
+//             return res.status(404).json({ error: "File Data Not Found" });
+//         }
 
-        const linkedFileId = fileDataDoc.fileId;
+//         const linkedFileId = fileDataDoc.fileId;
 
-        //Delete the FileData Doc
-        await FileData.findByIdAndDelete(id);
+//         //Delete the FileData Doc
+//         await FileData.findByIdAndDelete(id);
 
-        //Delete the linked file doc
-        if (linkedFileId) {
-            await File.findByIdAndDelete(linkedFileId);
-        }
+//         //Delete the linked file doc
+//         if (linkedFileId) {
+//             await File.findByIdAndDelete(linkedFileId);
+//         }
 
-        return res.status(200).json({ message: "File and file data deleted succesfully" });
+//         return res.status(200).json({ message: "File and file data deleted succesfully" });
 
-
-        // const deleted = await FileData.findByIdAndDelete(id);
-
-        // if (!deleted) {
-        //     return res.status(404).json({ error: "File Data Not Found" });
-        // }
-
-        //return res.status(200).json({ message: "File Deleted Successfully" });
-
-    } catch (err) {
-        console.error("DELETE /api/file-data error:", err);
-        return res.status(500).json({ error: "Server error deleting file" });
-    }
-});
+//     } catch (err) {
+//         console.error("DELETE /api/file-data error:", err);
+//         return res.status(500).json({ error: "Server error deleting file" });
+//     }
+// });
 
 
 /* SAVE EDITS (UPDATE) */
