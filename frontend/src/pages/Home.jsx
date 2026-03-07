@@ -96,6 +96,7 @@ export default function Home() {
       }
 
     closeModal();
+    fetchFiles(); 
     window.dispatchEvent(new Event("filesUpdated"));
     } catch (err) {
       console.error("Error adding file:", err);
