@@ -77,6 +77,7 @@ app.post("/api/files", async (req, res) => {
     try {
         const { name, icon, description, colour, fileType } = req.body;
 
+        console.log(req.body);
         if (!name || !icon || !description || !colour || !fileType) {
             return res.status(400).json({
                 error: "Missing required fields: name, icon, description, colour, fileType"
@@ -166,7 +167,7 @@ app.get("/api/file-data/:fileId", async (req, res) => {
             return res.status(404).json({ error: "File not found" });
         }
 
-        let record = await FileData.findOne({ fileId, fileType: file.fileType });s
+        let record = await FileData.findOne({ fileId, fileType: file.fileType });
         if (!record) {
             const fileType = file.fileType || 'project-plan';
             record = await FileData.create({
@@ -339,7 +340,7 @@ app.get("/api/templates/default", (req, res) => {
         const list = readDefaultTemplates();
         res.status(200).json(list.map((t) => ({
             name: t.name,
-            fileType: t.fileType,
+            type: t.type,
             icon: t.icon,
             description: t.description,
             colour: t.colour
