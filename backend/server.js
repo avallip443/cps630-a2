@@ -213,13 +213,33 @@ app.delete('/api/file-data/:id', async (req, res) => {
             return res.status(400).json({ error: "Invalid ID" });
         }
 
-        const deleted = await FileData.findByIdAndDelete(id);
+        //Find the fileData Doc
+        const fileDataDoc = await FileData.findById(id);
 
-        if (!deleted) {
+        if (!fileDataDoc) {
             return res.status(404).json({ error: "File Data Not Found" });
         }
 
-        return res.status(200).json({ message: "File Deleted Successfully" });
+        const linkedFileId = fileDataDoc.fileId;
+
+        //Delete the FileData Doc
+        await FileData.findByIdAndDelete(id);
+
+        //Delete the linked file doc
+        if (linkedFileId) {
+            await File.findByIdAndDelete(linkedFileId);
+        }
+
+        return res.status(200).json({ message: "File and file data deleted succesfully" });
+
+
+        // const deleted = await FileData.findByIdAndDelete(id);
+
+        // if (!deleted) {
+        //     return res.status(404).json({ error: "File Data Not Found" });
+        // }
+
+        //return res.status(200).json({ message: "File Deleted Successfully" });
 
     } catch (err) {
         console.error("DELETE /api/file-data error:", err);
