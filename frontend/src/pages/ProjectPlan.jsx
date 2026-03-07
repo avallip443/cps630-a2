@@ -1,154 +1,109 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useFileData } from '../hooks/useFileData';
+import { Link } from 'react-router-dom';
 
 export default function ProjectPlan() {
-  const { id } = useParams(); // FileData ID
-  const [file, setFile] = useState(null);
-  const [fileData, setFileData] = useState({});
+  const { 
+    file, 
+    fileData, 
+    handleChange, 
+    handleSave, 
+    handleDelete, 
+    loading, 
+    error 
+  } = useFileData();
 
-  useEffect(() => {
-    async function fetchFileData() {
-      try {
-        const res = await fetch(`http://localhost:8080/api/file-data/item/${id}`);
-        const data = await res.json();
-        setFile(data);
-        setFileData(data.fileData || {});
-      } catch (err) {
-        console.error("Error fetching file data:", err);
-      }
-    }
-    fetchFileData();
-  }, [id]);
+  if (error) return (
+    <p className="error">
+      {error} 
+      <Link to="/">
+        Back to Home
+      </Link>
+    </p>
+  );
 
-  const handleChange = (key, value) => {
-    setFileData(prev => ({ ...prev, [key]: value }));
-  };
+  if (loading || !file) return (
+    <p>Loading...</p>
+  );
 
-  const handleSave = async () => {
-    try {
-      await fetch(`http://localhost:8080/api/file-data/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileData })
-      });
-      alert("File saved!");
-    } catch (err) {
-      console.error("Error saving file data:", err);
-    }
-  };
-
-    const handleDelete = async () => {
-    const confirmDelete = window.confirm("Confirm Delete File?");
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch(`http://localhost:8080/api/file-data/${id}`, {
-        method: "DELETE"
-      });
-
-      if (res.ok) {
-        alert("File Deleted!");
-        window.location.href = "/";
-      }
-      else {
-        const err = await res.json();
-        alert("Delete failed: " + err.error);
-      }
-    }
-    catch (err) {
-      console.error("Error Deleting File:", err);
-    }
-  };
-
-  if (!file) return <p>Loading...</p>;
-
-return (
-  <div>
-    <div className="header">
-      <h1>📊 {file.fileType} </h1>
-      <p className="subtitle">
-        Template for planning and tracking project milestones
-      </p>
-    </div>
-
-    <div className="container">
-      <div className="section">
-        <h2>Project Overview</h2>
-
-        <div className="field">
-          <label>Project Name</label>
-          <input
-            type="text"
-            value={fileData.projectName || ""}
-            onChange={e => handleChange("projectName", e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label>Start Date</label>
-          <input
-            type="date"
-            value={fileData.startDate || ""}
-            onChange={e => handleChange("startDate", e.target.value)}
-          />
-        </div>
-
-        <div className="field">
-          <label>End Date</label>
-          <input
-            type="date"
-            value={fileData.endDate || ""}
-            onChange={e => handleChange("endDate", e.target.value)}
-          />
-        </div>
+  return (
+    <div>
+      <div className="header">
+        <h1>📊 {file.name}</h1>
+        <p className="subtitle">Template for planning and tracking project milestones</p>
       </div>
 
-      <div className="section">
-        <h2>Goals</h2>
-        {Array(3)
-          .fill(null)
-          .map((_, index) => (
-            <div key={index} className="grid-cols">
-              <input
-                type="text"
-                value={fileData.goals?.[index]?.name || ""}
-                onChange={e =>
-                  handleChange("goals", [
-                    ...(fileData.goals || []),
-                    { ...fileData.goals?.[index], name: e.target.value }
-                  ])
-                }
-                placeholder="Goal name"
-              />
+      <div className="container">
+        <div className="section">
+          <h2>Project Overview</h2>
+          <div className="field">
+            <label>Project Name</label>
+            <input
+              type="text"
+              value={fileData.projectName || ''}
+              onChange={(e) => handleChange('projectName', e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={fileData.startDate || ''}
+              onChange={(e) => handleChange('startDate', e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>End Date</label>
+            <input
+              type="date"
+              value={fileData.endDate || ''}
+              onChange={(e) => handleChange('endDate', e.target.value)}
+            />
+          </div>
+        </div>
 
-              <input
-                type="date"
-                value={fileData.goals?.[index]?.date || ""}
-                onChange={e =>
-                  handleChange("goals", [
-                    ...(fileData.goals || []),
-                    { ...fileData.goals?.[index], date: e.target.value }
-                  ])
-                }
-              />
-            </div>
-          ))}
-      </div>
+        <div className="section">
+          <h2>Goals</h2>
+          {Array(3).fill(null).map((_, i) => {
+            const goals = [...(fileData.goals || [])];
+            while (goals.length <= i) goals.push({});
+            return (
+              <div key={i} className="grid-cols">
+                <input
+                  type="text"
+                  value={fileData.goals?.[i]?.name || ''}
+                  onChange={(e) => {
+                    goals[i] = { ...goals[i], name: e.target.value };
+                    handleChange('goals', goals);
+                  }}
+                  placeholder="Goal name"
+                />
+                <input
+                  type="date"
+                  value={fileData.goals?.[i]?.date || ''}
+                  onChange={(e) => {
+                    goals[i] = { ...goals[i], date: e.target.value };
+                    handleChange('goals', goals);
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
 
-      <div className="section">
-        <h2>Team Members</h2>
-        <textarea
-          rows={4}
-          value={fileData.teamMembers || ""}
-          onChange={e => handleChange("teamMembers", e.target.value)}
-        />
-      </div>
-
-      <div className="button-container">
-        <button className="save" onClick={handleSave}>Save</button>
-        <button className="delete" onClick={handleDelete}>Delete File</button>
+        <div className="section">
+          <h2>Team Members</h2>
+          <textarea
+            rows={4}
+            value={fileData.teamMembers || ''}
+            onChange={(e) => handleChange('teamMembers', e.target.value)}
+          />
+        </div>
+        
+        <div className="button-container">
+          <button type="button" className="save" onClick={handleSave}>Save</button>
+          <button type="button" className="delete" onClick={handleDelete}>Delete File</button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

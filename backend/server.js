@@ -4,8 +4,10 @@ const app       = express();
 const path      = require('path');
 const fs        = require('fs');
 const { default: mongoose } = require('mongoose');
+
 const File = require('./models/File');
 const FileData = require('./models/FileData');
+const { VALID_FILE_TYPES } = File;
 
 const DEFAULT_TEMPLATES_PATH = path.join(__dirname, 'data', 'default-templates.json');
 
@@ -32,9 +34,9 @@ db.on('open', function() {
 
 // Test data
 const file_database = [
-    { name: "Test Bug Report", icon: "🐞", description: "Documenting software bugs and issues", colour: "#E53935" },
-    { name: "Test Meeting Notes", icon: "📝", description: "Notes from team meetings and discussions", colour: "#1E88E5" },
-    { name: "Test Project Plan", icon: "📊", description: "Project timeline, milestones, and deliverables", colour: "#43A047" }
+    { name: "Test Bug Report", fileType: "bug-report", icon: "🐞", description: "Documenting software bugs and issues", colour: "#E53935" },
+    { name: "Test Meeting Notes", fileType: "meeting-notes", icon: "📝", description: "Notes from team meetings and discussions", colour: "#1E88E5" },
+    { name: "Test Project Plan", fileType: "project-plan", icon: "📊", description: "Project timeline, milestones, and deliverables", colour: "#43A047" }
 ];
 
 // Add test data
@@ -73,12 +75,16 @@ function readDefaultTemplates() {
 /* CREATE FILE ITEM */
 app.post("/api/files", async (req, res) => {
     try {
-        const { name, icon, description, colour } = req.body;
+        const { name, icon, description, colour, fileType } = req.body;
 
-        //Bad Request
-        if (!name || !icon || !description || colour === undefined) {
+        if (!name || !icon || !description || !colour || !fileType) {
             return res.status(400).json({
-                error: "Missing required fields: name, icon, description, colour"
+                error: "Missing required fields: name, icon, description, colour, fileType"
+            });
+        }
+        if (!VALID_FILE_TYPES.includes(String(fileType).trim())) {
+            return res.status(400).json({
+                error: "fileType must be one of: project-plan, meeting-notes, bug-report"
             });
         }
 
@@ -90,9 +96,17 @@ app.post("/api/files", async (req, res) => {
 
         const created = await File.create({
             name: String(name).trim(),
+            fileType: String(fileType).trim(),
             icon: String(icon).trim(),
             description: String(description).trim(),
             colour: String(colour).trim()
+        });
+
+        // Create one FileData for this file with the same fileType
+        await FileData.create({
+            fileId: created._id,
+            fileType: created.fileType,
+            fileData: {}
         });
 
         return res.status(201).json(created);
@@ -139,17 +153,99 @@ app.post("/api/file-data", async (req, res) => {
     }
 });
 
+/* get fileData by fileId */
+app.get("/api/file-data/:fileId", async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ error: "Invalid file ID" });
+        }
+
+        const file = await File.findById(fileId);
+        if (!file) {
+            return res.status(404).json({ error: "File not found" });
+        }
+
+        let record = await FileData.findOne({ fileId, fileType: file.fileType });s
+        if (!record) {
+            const fileType = file.fileType || 'project-plan';
+            record = await FileData.create({
+                fileId: file._id,
+                fileType,
+                fileData: {}
+            });
+        }
+
+        res.status(200).json({
+            file: { _id: file._id, name: file.name, icon: file.icon, description: file.description, colour: file.colour, fileType: file.fileType || 'project-plan' },
+            fileData: record.fileData || {}
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error fetching file data" });
+    }
+});
+
+/* update fileData by fileId */
+app.put("/api/file-data/:fileId", async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        const { fileData } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ error: "Invalid file ID" });
+        }
+
+        const file = await File.findById(fileId);
+        if (!file) return res.status(404).json({ error: "File not found" });
+
+        const updated = await FileData.findOneAndUpdate(
+            { fileId, fileType: file.fileType },
+            { fileData: fileData || {} },
+            { new: true }
+        );
+
+        if (!updated) return res.status(404).json({ error: "File data not found" });
+        res.status(200).json(updated);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error updating file data" });
+    }
+});
+
+/* delete fileData by fileId */
+app.delete("/api/file-data/:fileId", async (req, res) => {
+    try {
+        const { fileId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ error: "Invalid file ID" });
+        }
+
+        const file = await File.findById(fileId);
+        if (!file) {
+            return res.status(404).json({ error: "File not found" });
+        }
+
+        const deleted = await FileData.findOneAndDelete({ fileId, fileType: file.fileType });
+        if (!deleted) {
+            return res.status(404).json({ error: "File data not found" });
+        }
+
+        res.status(200).json({ message: "Deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error deleting file data" });
+    }
+});
+
 /* READ ITEM (one file using id) */
 app.get("/api/files/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
 
         const file = await File.findById(id);
-
         if (!file) {
             return res.status(404).json({ error: "File not found" });
         }
@@ -161,26 +257,7 @@ app.get("/api/files/:id", async (req, res) => {
     }
 });
 
-/* READ MULTIPLE FILES (all files) */
-app.get("/api/file-data/:fileId", async (req, res) => {
-    try {
-        const { fileId } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(fileId)) {
-            return res.status(400).json({ error: "Invalid fileId" });
-        }
-
-        const data = await FileData.find({ fileId })
-            .populate("fileId"); // 👈 This pulls full file info
-
-        res.status(200).json(data);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error fetching file data" });
-    }
-});
-
-/* READ SINGLE FILE DATA */
+/* READ SINGLE FILE DATA (by FileData _id) */
 app.get("/api/file-data/item/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -257,17 +334,16 @@ app.get("/api/files", async (req, res) => {
     }
 });
 
-// "+ New Template" – local read of default-templates.json only (no DB).
 app.get("/api/templates/default", (req, res) => {
     try {
         const list = readDefaultTemplates();
-        const result = list.map((t) => ({
+        res.status(200).json(list.map((t) => ({
             name: t.name,
+            fileType: t.fileType,
             icon: t.icon,
-            description: t.description || '',
-            colour: t.colour ?? t.colour ?? ''
-        }));
-        res.status(200).json(result);
+            description: t.description,
+            colour: t.colour
+        })));
     } catch (err) {
         console.error("Error reading default templates:", err);
         res.status(500).json({ error: "Error reading default templates" });
@@ -284,5 +360,6 @@ app.get("/api/file-data", async (req, res) => {
     res.status(500).json({ error: "Error fetching user files" });
   }
 });
+
 //starts server
 app.listen(PORT, () => { console.log("Server started on port: " + PORT) });

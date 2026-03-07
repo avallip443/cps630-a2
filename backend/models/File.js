@@ -1,11 +1,19 @@
 const mongoose = require('mongoose');
 
+const VALID_FILE_TYPES = ['project-plan', 'meeting-notes', 'bug-report'];
+
 const FileSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
         trim: true,
         unique: true
+    },
+    fileType: {
+        type: String,
+        required: true,
+        trim: true,
+        enum: VALID_FILE_TYPES
     },
     icon: {
         type: String,
@@ -29,3 +37,4 @@ const FileSchema = new mongoose.Schema({
 const File = mongoose.model('file', FileSchema);
 
 module.exports = File;
+module.exports.VALID_FILE_TYPES = VALID_FILE_TYPES;

@@ -4,8 +4,7 @@ import FileCard from "../components/FileCard";
 import EmptyState from "../components/EmptyState";
 import TemplateOption from "../components/TemplateOption";
 import CustomizeFileForm from "../components/CustomizeFileForm";
-
-const API = "http://localhost:8080";
+import { API } from "../api";
 
 export default function Home() {
   const [userFiles, setUserFiles] = useState([]);
@@ -13,19 +12,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [formValues, setFormValues] = useState({
-    name: "",
-    description: "",
-    colour: "",
-  });
+  const [formValues, setFormValues] = useState({ name: "", description: "", colour: "" });
   const [formError, setFormError] = useState("");
 
   const fetchFiles = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/files`);
-      const files = await res.json();
-      setUserFiles(files);
+      setUserFiles(await res.json());
     } catch (err) {
       console.error("Error fetching files:", err);
     } finally {
@@ -67,7 +61,8 @@ export default function Home() {
   };
 
   const closeModal = () => {
-    closeEditPopup();
+    setEditingTemplate(null);
+    setFormError("");
     setShowModal(false);
   };
 
@@ -82,16 +77,17 @@ export default function Home() {
     }
 
     const description =
-      formValues.description.trim() || (editingTemplate?.description ?? "");
+      formValues.description.trim() || (editingTemplate?.description || "");
     const colour =
-      formValues.colour.trim() || (editingTemplate?.colour ?? "");
-    const icon = editingTemplate?.icon ?? "📄";
+      formValues.colour.trim() || (editingTemplate?.colour || "#00000");
+    const icon = editingTemplate?.icon;
+    const fileType = editingTemplate?.type;
 
     try {
       const response = await fetch(`${API}/api/files`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, icon, description, colour }),
+        body: JSON.stringify({ name, icon, description, colour, fileType }),
       });
       const data = await response.json();
 
