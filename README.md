@@ -35,21 +35,24 @@ The server will run on `http://localhost:5173`
 - to navigate through created user files, click on "recent" button to look at all files from most recently created to oldest
 - to delete a file, click on the "delete" button on the right bottom corner of each file
 - to save the input/information on a file, click on the green "save" button at the bottom of each file
-#### Routes
-- / --> Home Page
-- /project-plan/:id --> specific file with project plan template by id
-- /meeting-notes/:id --> specific file with project plan template by id
-- /bug-report/:id --> specific file with project plan template by id
-- ' * ' --> invalid routes
-#### API
-- POST /api/files --> creates a new file
-- POST /api/file-data --> creates file data
-- GET /api/files --> reads all template files
-- GET /api/files/:id --> reads/retrieves one file by ID
-- GET /api/file-data --> retrieves all files
-- GET /api/file-data/:fileId --> retrieves all files by fileId
-- GET /api/file-data/item/:id --> reads all data from a single file  by ID
-- DELETE /api/file-data/:id --> deletes corresponding file
+#### Routes (frontend)
+| Path | Description |
+|------|-------------|
+| `/` | Home page to list and create files |
+| `/project-plan/:fileId` | Project plan template for the file |
+| `/meeting-notes/:fileId` | Meeting notes template for the file |
+| `/bug-report/:fileId` | Bug report template for the file |
+| `*` | Any invalid route |
+
+#### API (backend)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/files` | Create a new file. Body: `{ name, icon, description, colour, fileType }`. `fileType` must be `project-plan`, `meeting-notes`, or `bug-report`. Also creates FileData for the file. |
+| `GET` | `/api/files` | List all files |
+| `GET` | `/api/file-data/:fileId` | Get file and its data by file id. Returns `{ file, fileData }`. Creates FileData if missing. |
+| `PUT` | `/api/file-data/:fileId` | Update file data. Body: `{ fileData }` |
+| `DELETE` | `/api/file-data/:fileId` | Delete the file and its file data |
+| `GET` | `/api/templates/default` | List default templates (Project Plan, Meeting Notes, Bug Report) |
   
 ## Reflection
 For this assignment, we created and submitted the code for our web application along with a demo video showcasing our organizational platform. One success we experienced we had was being more efficient and organized which allowed us to successfully migrate our previous assignment’s code to utilize MongoDB. In this assignment, we used two databases where one collection (“File”) was linked to another (“FileData”). Connecting these two collections and ensuring that our functions—such as create, update, and delete—worked correctly across both was somewhat challenging. However, through collaboration and consistent communication within the team, we were able to resolve these issues and complete the assignment successfully.
