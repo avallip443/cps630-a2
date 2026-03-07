@@ -71,11 +71,11 @@ export default function Home() {
     }
 
     const description =
-      formValues.description.trim() || (editingTemplate?.description ?? "");
+      formValues.description.trim() || (editingTemplate?.description || "");
     const colour =
-      formValues.colour.trim() || (editingTemplate?.colour ?? "");
-    const icon = editingTemplate?.icon ?? "📄";
-    const fileType = editingTemplate?.type ?? "project-plan";
+      formValues.colour.trim() || (editingTemplate?.colour || "#00000");
+    const icon = editingTemplate?.icon;
+    const fileType = editingTemplate?.type;
 
     try {
       const response = await fetch(`${API}/api/files`, {

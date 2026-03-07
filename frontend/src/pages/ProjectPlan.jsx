@@ -2,17 +2,36 @@ import { useFileData } from '../hooks/useFileData';
 import { Link } from 'react-router-dom';
 
 export default function ProjectPlan() {
-  const { file, fileData, handleChange, handleSave, handleDelete, loading, error } = useFileData();
+  const { 
+    file, 
+    fileData, 
+    handleChange, 
+    handleSave, 
+    handleDelete, 
+    loading, 
+    error 
+  } = useFileData();
 
-  if (error) return <p className="error">{error} <Link to="/">Back to Home</Link></p>;
-  if (loading || !file) return <p>Loading...</p>;
+  if (error) return (
+    <p className="error">
+      {error} 
+      <Link to="/">
+        Back to Home
+      </Link>
+    </p>
+  );
+
+  if (loading || !file) return (
+    <p>Loading...</p>
+  );
 
   return (
     <div>
       <div className="header">
-        <h1>📊 {file.fileType}</h1>
+        <h1>📊 {file.name}</h1>
         <p className="subtitle">Template for planning and tracking project milestones</p>
       </div>
+
       <div className="container">
         <div className="section">
           <h2>Project Overview</h2>
@@ -41,6 +60,7 @@ export default function ProjectPlan() {
             />
           </div>
         </div>
+
         <div className="section">
           <h2>Goals</h2>
           {Array(3).fill(null).map((_, i) => {
@@ -69,6 +89,7 @@ export default function ProjectPlan() {
             );
           })}
         </div>
+
         <div className="section">
           <h2>Team Members</h2>
           <textarea
@@ -77,6 +98,7 @@ export default function ProjectPlan() {
             onChange={(e) => handleChange('teamMembers', e.target.value)}
           />
         </div>
+        
         <div className="button-container">
           <button type="button" className="save" onClick={handleSave}>Save</button>
           <button type="button" className="delete" onClick={handleDelete}>Delete File</button>
@@ -85,3 +107,4 @@ export default function ProjectPlan() {
     </div>
   );
 }
+

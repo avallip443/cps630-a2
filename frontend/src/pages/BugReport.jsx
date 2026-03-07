@@ -2,20 +2,39 @@ import { useFileData } from '../hooks/useFileData';
 import { Link } from 'react-router-dom';
 
 export default function BugReport() {
-  const { file, fileData, handleChange, handleSave, handleDelete, loading, error } = useFileData();
+  const { 
+    file, 
+    fileData, 
+    handleChange, 
+    handleSave, 
+    handleDelete, 
+    loading, 
+    error 
+  } = useFileData();
 
-  if (error) return <p className="error">{error} <Link to="/">Back to Home</Link></p>;
-  if (loading || !file) return <p>Loading...</p>;
+  if (error) return (
+    <p className="error">
+      {error} 
+      <Link to="/">
+        Back to Home
+      </Link>
+    </p>
+  );
+
+  if (loading || !file) return (
+    <p>Loading...</p>
+  );
 
   return (
     <div>
       <div className="header">
-        <h1>🐛 {file.fileType}</h1>
+        <h1>🐛 {file.name}</h1>
         <p className="subtitle">Template for reporting bugs</p>
       </div>
       <div className="container">
         <div className="section">
           <h2>Bug Information</h2>
+
           <div className="field">
             <label>Bug ID</label>
             <input
@@ -24,6 +43,7 @@ export default function BugReport() {
               onChange={(e) => handleChange('bugId', e.target.value)}
             />
           </div>
+
           <div className="field">
             <label>Title</label>
             <input
@@ -32,6 +52,7 @@ export default function BugReport() {
               onChange={(e) => handleChange('title', e.target.value)}
             />
           </div>
+
           <div className="field">
             <label>Severity</label>
             <select
@@ -45,6 +66,7 @@ export default function BugReport() {
               <option value="low">Low</option>
             </select>
           </div>
+
           <div className="field">
             <label>Status</label>
             <select
@@ -59,6 +81,7 @@ export default function BugReport() {
             </select>
           </div>
         </div>
+
         <div className="section">
           <h2>Description</h2>
           <textarea
@@ -67,6 +90,7 @@ export default function BugReport() {
             onChange={(e) => handleChange('description', e.target.value)}
           />
         </div>
+        
         <div className="button-container">
           <button type="button" className="save" onClick={handleSave}>Save</button>
           <button type="button" className="delete" onClick={handleDelete}>Delete File</button>

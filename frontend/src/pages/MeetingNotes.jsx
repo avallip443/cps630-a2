@@ -2,15 +2,33 @@ import { useFileData } from '../hooks/useFileData';
 import { Link } from 'react-router-dom';
 
 export default function MeetingNotes() {
-  const { file, fileData, handleChange, handleSave, handleDelete, loading, error } = useFileData();
+  const { 
+    file, 
+    fileData, 
+    handleChange, 
+    handleSave, 
+    handleDelete, 
+    loading, 
+    error 
+  } = useFileData();
 
-  if (error) return <p className="error">{error} <Link to="/">Back to Home</Link></p>;
-  if (loading || !file) return <p>Loading...</p>;
+  if (error) return (
+    <p className="error">
+      {error} 
+      <Link to="/">
+        Back to Home
+      </Link>
+    </p>
+  );
+
+  if (loading || !file) return (
+    <p>Loading...</p>
+  );
 
   return (
     <div>
       <div className="header">
-        <h1>📝 {file.fileType}</h1>
+        <h1>📝 {file.name}</h1>
         <p className="subtitle">Template for documenting meetings</p>
       </div>
       <div className="container">
@@ -40,6 +58,7 @@ export default function MeetingNotes() {
             onChange={(e) => handleChange('discussion', e.target.value)}
           />
         </div>
+
         <div className="section">
           <h2>Key Takeaways</h2>
           <textarea

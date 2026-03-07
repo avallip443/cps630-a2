@@ -6,19 +6,12 @@ export default function FileCard({ file }) {
   return (
     <div
       className="file-card"
-      style={{ borderLeft: `6px solid ${file.colour || ''}` }}
+      style={{ borderLeft: `6px solid ${file.colour || "#000000"}` }}
     >
-      {url ? (
-        <Link to={url} className="file-card-link">
-          <h2>{file.icon} {file.name}</h2>
-          <p>{file.description}</p>
-        </Link>
-      ) : (
-        <>
-          <h2>{file.icon} {file.name}</h2>
-          <p>{file.description}</p>
-        </>
-      )}
+      <Link to={url} className="file-card-link">
+        <h2>{file.icon} {file.name}</h2>
+        <p>{file.description}</p>
+      </Link>
     </div>
   );
 }

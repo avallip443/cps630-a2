@@ -6,14 +6,14 @@ export function getFileUrl(file) {
 
 /** GET file + fileData by fileId. Returns { file, fileData }. */
 export async function fetchFileWithData(fileId) {
-  const res = await fetch(`${API}/api/files/${fileId}/editor`);
+  const res = await fetch(`${API}/api/file-data/${fileId}`);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Failed to load file');
   return data;
 }
 
 export async function saveFileData(fileId, fileData) {
-  const res = await fetch(`${API}/api/files/${fileId}/file-data`, {
+  const res = await fetch(`${API}/api/file-data/${fileId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileData }),
@@ -22,6 +22,6 @@ export async function saveFileData(fileId, fileData) {
 }
 
 export async function deleteFileData(fileId) {
-  const res = await fetch(`${API}/api/files/${fileId}/file-data`, { method: 'DELETE' });
+  const res = await fetch(`${API}/api/file-data/${fileId}`, { method: 'DELETE' });
   if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
 }

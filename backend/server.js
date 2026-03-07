@@ -4,6 +4,7 @@ const app       = express();
 const path      = require('path');
 const fs        = require('fs');
 const { default: mongoose } = require('mongoose');
+
 const File = require('./models/File');
 const FileData = require('./models/FileData');
 const { VALID_FILE_TYPES } = File;
@@ -76,7 +77,7 @@ app.post("/api/files", async (req, res) => {
     try {
         const { name, icon, description, colour, fileType } = req.body;
 
-        if (!name || !icon || !description || colour === undefined || !fileType) {
+        if (!name || !icon || !description || !colour || !fileType) {
             return res.status(400).json({
                 error: "Missing required fields: name, icon, description, colour, fileType"
             });
@@ -152,29 +153,32 @@ app.post("/api/file-data", async (req, res) => {
     }
 });
 
-/* READ FILE + FILE DATA (by fileId; lazy-creates FileData if missing) */
-app.get("/api/files/:fileId/editor", async (req, res) => {
+/* get fileData by fileId */
+app.get("/api/file-data/:fileId", async (req, res) => {
     try {
         const { fileId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
+
         const file = await File.findById(fileId);
         if (!file) {
             return res.status(404).json({ error: "File not found" });
         }
-        let fileDataRecord = await FileData.findOne({ fileId, fileType: file.fileType });
-        if (!fileDataRecord) {
+
+        let record = await FileData.findOne({ fileId, fileType: file.fileType });
+        if (!record) {
             const fileType = file.fileType || 'project-plan';
-            fileDataRecord = await FileData.create({
+            record = await FileData.create({
                 fileId: file._id,
                 fileType,
                 fileData: {}
             });
         }
+
         res.status(200).json({
             file: { _id: file._id, name: file.name, icon: file.icon, description: file.description, colour: file.colour, fileType: file.fileType || 'project-plan' },
-            fileData: fileDataRecord.fileData || {}
+            fileData: record.fileData || {}
         });
     } catch (err) {
         console.error(err);
@@ -182,21 +186,24 @@ app.get("/api/files/:fileId/editor", async (req, res) => {
     }
 });
 
-/* UPDATE FILE DATA (by fileId) */
-app.put("/api/files/:fileId/file-data", async (req, res) => {
+/* update fileData by fileId */
+app.put("/api/file-data/:fileId", async (req, res) => {
     try {
         const { fileId } = req.params;
         const { fileData } = req.body;
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
+
         const file = await File.findById(fileId);
         if (!file) return res.status(404).json({ error: "File not found" });
+
         const updated = await FileData.findOneAndUpdate(
             { fileId, fileType: file.fileType },
             { fileData: fileData || {} },
             { new: true }
         );
+
         if (!updated) return res.status(404).json({ error: "File data not found" });
         res.status(200).json(updated);
     } catch (err) {
@@ -205,11 +212,10 @@ app.put("/api/files/:fileId/file-data", async (req, res) => {
     }
 });
 
-/* DELETE FILE + FILE DATA (by fileId) */
-app.delete("/api/files/:fileId/file-data", async (req, res) => {
+/* delete fileData by fileId */
+app.delete("/api/file-data/:fileId", async (req, res) => {
     try {
         const { fileId } = req.params;
-
         if (!mongoose.Types.ObjectId.isValid(fileId)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
@@ -219,18 +225,15 @@ app.delete("/api/files/:fileId/file-data", async (req, res) => {
             return res.status(404).json({ error: "File not found" });
         }
 
-        // delete all linked fileData records for this file
-        await FileData.deleteMany({ fileId });
+        const deleted = await FileData.findOneAndDelete({ fileId, fileType: file.fileType });
+        if (!deleted) {
+            return res.status(404).json({ error: "File data not found" });
+        }
 
-        // delete the actual file
-        await File.findByIdAndDelete(fileId);
-
-        return res.status(200).json({
-            message: "File and file data deleted successfully"
-        });
+        res.status(200).json({ message: "Deleted" });
     } catch (err) {
-        console.error("DELETE /api/files/:fileId/file-data error:", err);
-        return res.status(500).json({ error: "Error deleting file and file data" });
+        console.error(err);
+        res.status(500).json({ error: "Error deleting file data" });
     }
 });
 
@@ -238,13 +241,11 @@ app.delete("/api/files/:fileId/file-data", async (req, res) => {
 app.get("/api/files/:id", async (req, res) => {
     try {
         const { id } = req.params;
-
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: "Invalid file ID" });
         }
 
         const file = await File.findById(id);
-
         if (!file) {
             return res.status(404).json({ error: "File not found" });
         }
@@ -256,26 +257,7 @@ app.get("/api/files/:id", async (req, res) => {
     }
 });
 
-/* READ MULTIPLE FILES (all files) */
-app.get("/api/file-data/:fileId", async (req, res) => {
-    try {
-        const { fileId } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(fileId)) {
-            return res.status(400).json({ error: "Invalid fileId" });
-        }
-
-        const data = await FileData.find({ fileId })
-            .populate("fileId"); // 👈 This pulls full file info
-
-        res.status(200).json(data);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error fetching file data" });
-    }
-});
-
-/* READ SINGLE FILE DATA */
+/* READ SINGLE FILE DATA (by FileData _id) */
 app.get("/api/file-data/item/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -332,10 +314,10 @@ app.get("/api/templates/default", (req, res) => {
         const list = readDefaultTemplates();
         res.status(200).json(list.map((t) => ({
             name: t.name,
-            type: t.type || '',
+            type: t.type,
             icon: t.icon,
-            description: t.description || '',
-            colour: t.colour || ''
+            description: t.description,
+            colour: t.colour
         })));
     } catch (err) {
         console.error("Error reading default templates:", err);
@@ -353,5 +335,6 @@ app.get("/api/file-data", async (req, res) => {
     res.status(500).json({ error: "Error fetching user files" });
   }
 });
+
 //starts server
 app.listen(PORT, () => { console.log("Server started on port: " + PORT) });

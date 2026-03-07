@@ -6,25 +6,18 @@ export default function Sidebar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [files, setFiles] = useState([]);
 
-  const fetchFiles = () => {
-    fetch(`${API}/api/files`)
-      .then((r) => r.json())
-      .then(setFiles)
-      .catch((err) => console.error('Error fetching files:', err));
-  };
-
   useEffect(() => {
-    fetchFiles(); 
-
-    const handleRefresh = () => {
-      fetchFiles(); 
-    };
-
-    window.addEventListener("filesUpdated", handleRefresh);
-
-    return () => {
-      window.removeEventListener("filesUpdated", handleRefresh);
-    };
+    async function fetchFiles() {
+      try {
+        const res = await fetch(`${API}/api/files`);
+        const data = await res.json();
+        setFiles(data);
+      } catch (err) {
+        console.error('Error fetching files:', err);
+        setFiles([]);
+      }
+    }
+    fetchFiles();
   }, []);
 
   return (
@@ -47,26 +40,17 @@ export default function Sidebar() {
           {files.length === 0 ? (
             <p className="no-files">No files yet</p>
           ) : (
-            [...files].reverse().map((file) => {
+            [...files].reverse().map(file => {
               const url = getFileUrl(file);
-
-              return url ? (
+              return (
                 <Link
                   key={file._id || file.name}
                   to={url}
                   className="dropdown-item"
-                  style={{ borderLeft: `4px solid ${file.colour || 'transparent'}` }}
+                  style={{ borderLeft: `4px solid ${file.colour || '#000000'}` }}
                 >
                   {file.icon} {file.name}
                 </Link>
-              ) : (
-                <span
-                  key={file._id || file.name}
-                  className="dropdown-item"
-                  style={{ borderLeft: `4px solid ${file.colour || 'transparent'}` }}
-                >
-                  {file.icon} {file.name}
-                </span>
               );
             })
           )}
