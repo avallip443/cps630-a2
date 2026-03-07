@@ -43,16 +43,18 @@ export function useFileData() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Confirm Delete File?')) return;
-    try {
-      await deleteFileData(fileId);
-      alert('File Deleted!');
-      navigate('/');
-    } catch (err) {
-      console.error(err);
-      alert(err.message || 'Delete failed');
-    }
-  };
+  if (!window.confirm('Confirm Delete File?')) return;
+
+  try {
+    await deleteFileData(fileId);       
+    window.dispatchEvent(new Event('filesUpdated')); 
+    alert('File Deleted!');
+    navigate('/');                       
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Delete failed');
+  }
+};
 
   return { file, fileData, handleChange, handleSave, handleDelete, loading, error };
 }
