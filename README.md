@@ -55,7 +55,7 @@ The server will run on `http://localhost:5173`
 | `GET` | `/api/templates/default` | List default templates (Project Plan, Meeting Notes, Bug Report) |
   
 ## Reflection
-For this assignment, we created and submitted the code for our web application along with a demo video showcasing our organizational platform. One success we experienced we had was being more efficient and organized which allowed us to successfully migrate our previous assignment’s code to utilize MongoDB. In this assignment, we used two databases where one collection (“File”) was linked to another (“FileData”). Connecting these two collections and ensuring that our functions—such as create, update, and delete—worked correctly across both was somewhat challenging. However, through collaboration and consistent communication within the team, we were able to resolve these issues and complete the assignment successfully.
+For this assignment, we created and submitted the code for our web application along with a demo video showcasing our organizational platform. One success we experienced was being more efficient and organized which allowed us to successfully migrate our previous assignment’s code to utilize MongoDB. In this assignment, we used two databases where one collection (“File”) was linked to another (“FileData”). Connecting these two collections and ensuring that our functions—such as create, update, and delete—worked correctly across both was somewhat challenging. However, through collaboration and consistent communication within the team, we were able to resolve these issues and complete the assignment successfully.
 
 
 
