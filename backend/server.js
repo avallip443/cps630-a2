@@ -116,43 +116,6 @@ app.post("/api/files", async (req, res) => {
     }
 });
 
-/* CREATE FILE DATA */
-app.post("/api/file-data", async (req, res) => {
-    try {
-        const { fileId, fileType, fileData } = req.body;
-
-        // missing required fields
-        if (!fileId || !fileType || fileData === undefined) {
-            return res.status(400).json({
-                error: "Missing required fields: fileId, fileType, fileData"
-            });
-        }
-
-        // invalid id for file 
-        if (!mongoose.Types.ObjectId.isValid(fileId)) {
-            return res.status(400).json({ error: "Invalid fileId" });
-        }
-
-        // associated file does not exist
-        const fileExists = await File.exists({ _id: fileId });
-        if (!fileExists) {
-            return res.status(404).json({ error: "File not found" });
-        }
-
-        // create file data
-        const created = await FileData.create({
-            fileId,
-            fileType: String(fileType).trim(),
-            fileData: fileData || {}
-        });
-
-        return res.status(201).json(created);
-    } catch (err) {
-        console.error("POST /api/file-data error:", err);
-        return res.status(500).json({ error: "Server error creating file data" });
-    }
-});
-
 /* get fileData by fileId */
 app.get("/api/file-data/:fileId", async (req, res) => {
     try {
@@ -238,69 +201,6 @@ app.delete("/api/file-data/:fileId", async (req, res) => {
     }
 });
 
-
-/* READ ITEM (one file using id) */
-app.get("/api/files/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid file ID" });
-        }
-
-        const file = await File.findById(id);
-        if (!file) {
-            return res.status(404).json({ error: "File not found" });
-        }
-
-        res.status(200).json(file);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error fetching file" });
-    }
-});
-
-/* READ SINGLE FILE DATA (by FileData _id) */
-app.get("/api/file-data/item/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "Invalid ID" });
-        }
-
-        const item = await FileData.findById(id)
-            .populate("fileId");
-
-        if (!item) {
-            return res.status(404).json({ error: "File data not found" });
-        }
-
-        res.status(200).json(item);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Error fetching file data item" });
-    }
-});
-
-/* SAVE EDITS (UPDATE) */
-app.put("/api/file-data/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { fileData } = req.body;
-
-    const updated = await FileData.findByIdAndUpdate(
-      id,
-      { fileData },
-      { returnDocument: 'after' }
-    );
-
-    res.status(200).json(updated);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error updating file" });
-  }
-});
-
 app.get("/api/files", async (req, res) => {
     try {
         const files = await File.find();
@@ -325,17 +225,6 @@ app.get("/api/templates/default", (req, res) => {
         console.error("Error reading default templates:", err);
         res.status(500).json({ error: "Error reading default templates" });
     }
-});
-
-// GET all user files
-app.get("/api/file-data", async (req, res) => {
-  try {
-    const files = await FileData.find().populate("fileId");
-    res.status(200).json(files);
-  } catch (err) {
-    console.error("Error fetching user files:", err);
-    res.status(500).json({ error: "Error fetching user files" });
-  }
 });
 
 //starts server
