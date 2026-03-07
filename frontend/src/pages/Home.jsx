@@ -95,8 +95,8 @@ export default function Home() {
         throw new Error(data.error ?? "Failed to add file");
       }
 
-      closeModal();
-      fetchFiles();
+    closeModal();
+    window.dispatchEvent(new Event("filesUpdated"));
     } catch (err) {
       console.error("Error adding file:", err);
       setFormError(err.message ?? "Error adding file");

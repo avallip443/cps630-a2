@@ -6,11 +6,27 @@ export default function Sidebar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [files, setFiles] = useState([]);
 
-  useEffect(() => {
+  const fetchFiles = () => {
     fetch(`${API}/api/files`)
       .then((r) => r.json())
       .then(setFiles)
       .catch((err) => console.error('Error fetching files:', err));
+  };
+
+  useEffect(() => {
+    // initial load
+    fetchFiles();
+
+    // listen for refresh events
+    const handleRefresh = () => {
+      fetchFiles();
+    };
+
+    window.addEventListener("filesUpdated", handleRefresh);
+
+    return () => {
+      window.removeEventListener("filesUpdated", handleRefresh);
+    };
   }, []);
 
   return (
@@ -19,6 +35,7 @@ export default function Sidebar() {
         <div className="icon">📋</div>
         <h2>Thinkr</h2>
       </Link>
+
       <nav className="sidebar-nav">
         <button
           type="button"
@@ -27,12 +44,14 @@ export default function Sidebar() {
         >
           <span className="side-folder-name">&gt; Recent</span>
         </button>
+
         <div className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
           {files.length === 0 ? (
             <p className="no-files">No files yet</p>
           ) : (
             [...files].reverse().map((file) => {
               const url = getFileUrl(file);
+
               return url ? (
                 <Link
                   key={file._id || file.name}
